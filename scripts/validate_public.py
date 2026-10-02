@@ -12,7 +12,7 @@ APPROVED = {'.nojekyll', '.gitignore', 'README.md', 'SECURITY.md', 'VALIDATION.m
             'public-state.schema.json', 'scripts/contract.py', 'scripts/validate_public.py',
             'tests/test_public.py', 'tests/dom-smoke.cjs', '.github/workflows/validate.yml'}
 OPTIONAL = {'public-state.json'}
-DENY = [r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
+DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
         r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
         r'(?i)authorization\s*[:=]\s*[\"\x27]?bearer\s+[A-Za-z0-9._-]{10,}',

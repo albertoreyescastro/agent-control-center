@@ -53,6 +53,10 @@ class PublicBoundaryTests(unittest.TestCase):
     def test_invalid_optional_snapshot_rejected(self):
         (self.root/'public-state.json').write_text('{"secret":"hidden"}');self.assertTrue(check(self.root))
 
+    def test_absolute_private_source_paths_rejected(self):
+        for directory in ['workspace','home','root','tmp','var','mnt','opt','Users']:
+            (self.root/'README.md').write_text('/'+directory+'/'+'private-checkout/source.json')
+            self.assertTrue(check(self.root))
     def test_nested_git_directory_is_not_an_exemption(self):
         p=self.root/'assets/.git/private.txt';p.parent.mkdir();p.write_text('unapproved')
         self.assertTrue(check(self.root))
