@@ -1,20 +1,20 @@
 const DATA={meta:{mode:"SANITIZED_DEMO",updated:"Portfolio snapshot · no live private data"},agents:[
 {id:"claude",name:"Claude Local",provider:"Anthropic",surface:"Local",status:"online",role:"Code worker",task:"Idle · available for bounded coding tasks",reason:"Available",tokens:"Not exposed",quota:"Observable only at provider boundary",x:16,y:20},
-{id:"jules",name:"Jules",provider:"Google",surface:"Cloud async",status:"busy",role:"Architecture reviewer",task:"Independent architecture review · sanitized demo",reason:"Active lease",tokens:"Run telemetry withheld",quota:"Within configured free/plan boundary",x:50,y:14},
+{id:"jules",name:"Jules",provider:"Google",surface:"Cloud async",status:"busy",role:"Architecture reviewer",task:"Architecture review simulation · portfolio demo",reason:"Simulated active state",tokens:"Run telemetry withheld",quota:"Within configured free/plan boundary",x:50,y:14},
 {id:"copilot",name:"Copilot Cloud",provider:"GitHub",surface:"Cloud",status:"online",role:"Review worker",task:"Idle · eligible for review routing",reason:"Available",tokens:"Not exposed",quota:"Plan boundary enforced",x:84,y:20},
-{id:"antigravity",name:"Antigravity API",provider:"Google",surface:"Cloud API",status:"limited",role:"Security reviewer",task:"Unavailable for new work",reason:"Token / quota circuit open",tokens:"Historical aggregate only",quota:"Temporarily fenced",x:84,y:78},
+{id:"antigravity",name:"Antigravity API",provider:"Google",surface:"Cloud API",status:"limited",role:"Security reviewer",task:"Unavailable for new work · simulated",reason:"Simulated quota circuit open",tokens:"Historical aggregate only",quota:"Temporarily fenced",x:84,y:78},
 {id:"codexb",name:"Codex B",provider:"OpenAI",surface:"Cloud / local",status:"online",role:"Fallback engineer",task:"Idle · reserve capacity",reason:"Available",tokens:"Not exposed",quota:"Separate quota pool",x:50,y:86},
-{id:"codexa",name:"Codex A",provider:"OpenAI",surface:"Cloud",status:"offline",role:"Coding worker",task:"No task assigned",reason:"Quota unavailable · auto-rejoin enabled",tokens:"Not exposed",quota:"Unavailable",x:16,y:78}
+{id:"codexa",name:"Codex A",provider:"OpenAI",surface:"Cloud",status:"offline",role:"Coding worker",task:"No task assigned · simulated",reason:"Simulated quota unavailable",tokens:"Not exposed",quota:"Unavailable",x:16,y:78}
 ],queue:[
-{id:"review-005",state:"running",task:"Independent architecture review",worker:"Jules",attempt:"1 / 2"},
-{id:"ops-003",state:"queued",task:"Operations resilience audit",worker:"Awaiting route",attempt:"0 / 2"},
-{id:"security-002",state:"blocked",task:"Security review",worker:"Circuit fenced",attempt:"1 / 2"}
+{id:"demo-review",state:"running",task:"Architecture review · simulated",worker:"Cloud reviewer",attempt:"1 / 2"},
+{id:"demo-ops",state:"queued",task:"Operations resilience audit · simulated",worker:"Awaiting route",attempt:"0 / 2"},
+{id:"demo-security",state:"blocked",task:"Security review · simulated",worker:"Circuit fenced",attempt:"1 / 2"}
 ],events:[
-{t:"10:31",text:"Independent review accepted into durable queue"},
-{t:"10:28",text:"Provider-routing policy suite passed"},
-{t:"10:24",text:"Backoff clock propagation validated"},
-{t:"10:18",text:"Cloud provider circuit state refreshed"},
-{t:"10:12",text:"Human merge gate remains closed"}
+{t:"T+04m",text:"Demo review accepted into durable queue"},
+{t:"T+03m",text:"Provider-routing policy suite passed · simulated"},
+{t:"T+02m",text:"Backoff clock propagation validated · simulated"},
+{t:"T+01m",text:"Cloud provider circuit state refreshed · simulated"},
+{t:"T+00m",text:"Human merge gate remains closed · simulated"}
 ]};
 const $=s=>document.querySelector(s),agents=$("#agents"),graph=$("#graph"),svg=$("#edges"),inspector=$("#inspector");
 function stats(){let a=DATA.agents;let vals=[[a.filter(x=>x.status!=="offline").length,"available agents"],[a.filter(x=>x.status==="busy").length,"busy"],[a.filter(x=>x.status==="offline").length,"offline"],[DATA.queue.length,"queue entries"],[a.filter(x=>x.status==="limited").length,"quota fenced"]];$("#stats").innerHTML=vals.map(v=>`<div class="stat"><b>${v[0]}</b><small>${v[1]}</small></div>`).join("")}
