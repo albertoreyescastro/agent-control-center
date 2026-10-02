@@ -12,7 +12,7 @@ This repository is intentionally public. It contains the portfolio UI and a **pu
 
 ## Publication model
 
-The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Sanitization happens before data enters this repository.
+The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Free-text public fields are length- and character-constrained to reduce accidental leakage. Sanitization happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
 
 The UI must label simulated/demo data as such. Missing telemetry is rendered as unknown/not observable rather than inferred.
 
