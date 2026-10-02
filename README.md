@@ -1,66 +1,163 @@
-# Agent Control Center
+<a href="https://albertoreyescastro.github.io/agent-control-center/">
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/hero-narrow.svg">
+  <img src="docs/readme/hero.svg" width="960" alt="Agent Control Center — Reliable agents. Deliberate control. A sanitized, simulated portfolio demo by Alberto Reyes Castro.">
+</picture>
+</a>
 
-**Privacy-safe observability for resilient multi-agent AI orchestration.**
+![Simulated data](docs/readme/badge-demo.svg) ![No write controls](docs/readme/badge-readonly.svg) ![Static, no framework](docs/readme/badge-static.svg)
 
-Agent Control Center is a public portfolio interface for visualising the health, routing and execution state of a heterogeneous AI-agent system across local and cloud workers. It focuses on the operational layer that becomes important once a multi-agent prototype meets reality: quotas, unavailable providers, durable queues, leases, retries, independent review and human gates.
+# Engineering the space between agents
 
-> **Current mode:** sanitized portfolio demo. The public UI does **not** connect to the private orchestration repository and does not expose live credentials, private prompts or operational endpoints.
+A public, interactive explanation of a **resilient multi-agent control plane**: capability-aware routing across local and cloud execution, independent verification, bounded recovery and human-controlled promotion.
 
-## What the demo shows
+**SANITIZED / SIMULATED PORTFOLIO DEMO.** Real architectural concepts; authored demo activity. No live telemetry, provider calls or operational access.
 
-- Interactive orchestration topology with agent availability and activity.
-- Agent inspector for current role, sanitized work state, provider surface and observable quota state.
-- Durable queue and recent event stream.
-- Explicit unavailable/limited states instead of pretending every provider is healthy.
-- Responsive UI designed for desktop and mobile.
-- A strict allow-listed public telemetry schema for a future sanitized snapshot feed.
+**[LIVE DEMO ↗](https://albertoreyescastro.github.io/agent-control-center/)** · **[ARCHITECTURE ↓](#architecture)** · **[SCENARIOS ↓](#scenarios)** · **[SECURITY / TRUST MODEL ↓](#security-and-trust-model)**
 
-## Architecture boundary
+[Why I built it](#why-i-built-it) · [Engineering decisions](#engineering-decisions) · [Validation](#validation) · [Run locally](#run-locally) · [Source map](#source-map) · [Limitations](#limitations)
 
-A separate offline exporter constructs generic public aliases and queue counts from a validated private snapshot. The browser renders fixed demo state; the exporter is never part of the browser.
+## Why I built it
 
-The key rule is simple: **the public browser never receives credentials and never reads the private harness directly.** A future live feed must be generated upstream by a fail-closed sanitizer and conform to `public-state.schema.json`.
+An agent can produce useful work and still be the wrong owner of a task. Workers disappear, review providers become unavailable, results arrive late and quota runs out. Recovery needs more than another prompt.
 
-See [SECURITY.md](SECURITY.md) for the publication boundary.
+I built this project to make those coordination problems visible: **who is eligible, who owns an attempt, which evidence is required, and where automation must stop**. The public interface lets you explore those decisions without exposing the operational system.
 
-## Engineering themes
+Designed and built by **Alberto Reyes Castro** as an AI engineering portfolio project. Architecture, state transitions, failure boundaries and evidence are documented so the engineering can be inspected and discussed. AI agents are tools in the development workflow; this demo does not claim measured cross-provider review independence.
 
-This project demonstrates patterns including adaptive capability-aware routing, quota/circuit-breaker state, durable task execution, bounded recovery, heterogeneous cloud/local workers, independent review and human-in-the-loop controls.
+## Architecture
 
-The dashboard is intentionally an observability surface first. It does not provide public controls capable of starting agents, spending quota, changing routing or merging code.
+**Conceptual architecture, not an exact operational inventory.** Generic roles show the route from a task to a human decision. Local and cloud workers are alternative eligible execution surfaces; review is a separate role.
 
-## Portfolio context
+<a href="https://albertoreyescastro.github.io/agent-control-center/#architecture">
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/control-plane-narrow.svg">
+  <img src="docs/readme/control-plane.svg" width="960" alt="A generic task enters a policy-fenced control plane, routes to local or cloud execution, passes separate review and deterministic checks, then stops at a human merge gate. Failures return through bounded recovery.">
+</picture>
+</a>
 
-Built by **Alberto Reyes Castro** as an AI engineering portfolio project. AI agents are used as engineering tools within the development workflow; architecture decisions, validation boundaries and publication controls are documented so the project can be discussed and defended technically rather than presented as a black-box AI-generated demo.
+**Task → eligibility → route → fenced execution → separate review → deterministic checks → human merge gate.** Failure can change the worker or attempt; it must preserve capability, ownership, verification and spend policy.
+
+The browser illustrates this flow with finite fixtures. It does not implement a queue service, schedule real workers or perform provider-backed review.
+
+## Scenarios
+
+**Six local simulations. One closed human gate.** [Open the scenario lab ↗](https://albertoreyescastro.github.io/agent-control-center/#lab), select a story, then play, pause or step through its decisions. Inspect any worker by hover, tap or keyboard focus; reset returns to the selected story's start.
+
+| Story | Failure or decision | What to watch |
+| :-- | :-- | :-- |
+| **01 · Normal routing** | A task matches an eligible executor. | Execution, review and verification stay separate. |
+| **02 · Reviewer outage** | The first reviewer becomes unavailable. | An alternate takes the review role; requirements stay intact. |
+| **03 · Quota fence** | A reviewer pool is limited. | An eligible alternate pool is selected; no paid recovery is implied. |
+| **04 · Heartbeat lost** | Worker health becomes stale or unknown. | The worker becomes ineligible; a fresh owner is selected. |
+| **05 · Bounded recovery** | An execution attempt fails. | The illustrated two-attempt ceiling stays recorded; late results cannot own newer work. |
+| **06 · Independent verification / human merge gate** | Agent output needs evidence and authority. | Separate review and deterministic checks precede a closed human gate. |
+
+Task packets follow the active execution/review path. Inspector, metrics and timeline share the same scenario state. Pausing stops motion; reduced-motion preferences are respected. Changing stories cancels prior timers.
+
+## Engineering decisions
+
+| Concern | Design principle illustrated |
+| :-- | :-- |
+| **Capability-aware routing** | Filter capability, execution surface, health and policy before selecting a worker. |
+| **Durable queue / ownership** | Queue state outlives a worker; one claimed attempt has one owner. The public queue view is simulated. |
+| **Leases / heartbeats** | Heartbeats inform eligibility. Lease and attempt fences reject stale ownership and late completions. |
+| **Circuit breakers / retries** | Fence unavailable paths; preserve attempt counters and stop at the retry ceiling. |
+| **Quota / spend safety** | Pool eligibility constrains fallback. Unknown quota stays **Not observable**; recovery does not authorize paid overage, refill or reset. |
+| **Independent verification** | A separate review role and deterministic checks precede promotion. Cross-family diversity is a design goal, not a measured demo outcome. |
+| **Human authority** | A verified result is not permission to merge. The public page exposes no write or admin action. |
+
+<details>
+<summary><strong>Observability philosophy: show decisions, preserve uncertainty</strong></summary>
+
+The UI presents generic worker aliases, finite health states and a coherent decision timeline. It deliberately avoids displaying private task content. Missing or unobservable information stays unknown instead of becoming a green status by inference.
+
+The control plane separates availability, ownership, evidence and authority. A recovered route still needs review; a passing check still needs human approval. The topology is an explanation of those boundaries, not a live operational map.
+
+</details>
+
+## Security and trust model
+
+**Visibility does not require operational access.** The publication architecture has a one-way data boundary:
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/trust-boundary-narrow.svg">
+  <img src="docs/readme/trust-boundary.svg" width="960" alt="Conceptual one-way publication: private harness, read-only adapter, fail-closed sanitizer, finite public-state contract, public dashboard. No reverse control path; today the browser loads bundled demo fixtures only.">
+</picture>
+
+**Private harness → read-only adapter → sanitizer / allow-list → public-state contract → public dashboard.** Read-only extraction and sanitization happen upstream, outside this public browser. No live adapter is connected today.
+
+- The [public contract](public-state.schema.json) admits finite aliases, enums and bounded aggregates. Unknown fields and unrestricted operational text fail closed.
+- The browser uses bundled demo fixtures, text-only DOM rendering and a strict CSP including `connect-src 'none'`. It never connects to the private harness.
+- Malformed demo state disables simulation controls. Health and quota are never represented as measured live data.
+- Credentials, private prompts/responses, task payloads, raw logs, internal endpoints, private paths and account/billing identifiers must never enter this repository or its visual assets.
+
+Read [SECURITY.md](SECURITY.md) before changing public fields. If you discover sensitive content, contact the owner privately; do not reproduce it in a public issue. Pattern scanning cannot prove the absence of deliberately encoded secrets, so source review remains essential.
+
+## Validation
+
+The repository's [read-only validation workflow](.github/workflows/validate.yml) checks the public boundary and simulation before real-browser QA. Actions are pinned; checkout credentials are not persisted. There is no Pages deployment workflow in this repository.
+
+| Evidence | Existing V2 baseline |
+| :-- | :-- |
+| Privacy / schema regressions | **20 tests passed**; duplicate keys, malformed values, unsafe sinks and leakage cases. |
+| Deterministic simulation | **440 assertions passed** across all six scenario sequences. |
+| DOM behavior | **39 transitions passed**, plus stale timers, focus/hover, reduced motion and fail-closed behavior. |
+| Real Chrome QA | All six scenarios at **1440 / 1024 / 768 / 390 / 320 px**; keyboard, touch, hover and reduced motion passed. |
+| Layout / runtime | Zero horizontal overflow, clipped worker nodes, console/runtime errors or broken assets in the recorded run. |
+
+These are test results, not production reliability metrics. See the [recorded V2 CI run](https://github.com/albertoreyescastro/agent-control-center/actions/runs/37053572034), [current workflow runs](https://github.com/albertoreyescastro/agent-control-center/actions/workflows/validate.yml) and [validation evidence](VALIDATION.md). The V2 checkpoint documents its pre-merge test state; current main contains the merged V2 interface.
+
+<details>
+<summary><strong>Run the deterministic checks</strong></summary>
+
+```bash
+python -B scripts/validate_public.py
+python -B -m unittest discover -s tests -v
+node --check assets/app.js
+node --check assets/demo-state.js
+node --check assets/simulation.js
+node tests/simulation.cjs
+node tests/dom-smoke.cjs
+```
+
+The public scanner rejects unknown files, symlinks, oversized/binary content and credential/private-identifier patterns. It scans its own source. CI uses a hash-locked browser driver in temporary storage and Chrome already present on the hosted runner; the driver is not shipped to the website.
+
+</details>
 
 ## Run locally
 
-No build step or dependencies are required.
+**No build step, framework, runtime package installation or CDN.** Serve this static repository on loopback:
 
 ```bash
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open the loopback address on port 8000.
+Open the loopback address on port 8000. JavaScript enables the local simulation; architecture and source links remain available without it. No provider authentication is needed.
 
-## Security
+## Source map
 
-This repository is public by design. Do not commit secrets or copy raw state from the private orchestration system. Review [SECURITY.md](SECURITY.md) before adding telemetry fields.
+| Location | Responsibility |
+| :-- | :-- |
+| [index.html](index.html) · [styles.css](assets/styles.css) | Semantic static UI, responsive layout and motion styling. |
+| [app.js](assets/app.js) · [simulation.js](assets/simulation.js) | Inspection/playback and finite scenario state transitions. |
+| [demo-state.js](assets/demo-state.js) · [public-state.schema.json](public-state.schema.json) | Bundled sanitized fixture and closed public contract. |
+| [scripts/](scripts) | Contract validation and public inventory/leakage checks. |
+| [tests/](tests) | Python regressions, Node simulation/DOM checks and Chrome QA. |
+| [docs/readme/](docs/readme) | First-party static README visuals; no scripts or remote assets. |
+| [SECURITY.md](SECURITY.md) · [VALIDATION.md](VALIDATION.md) | Publication boundary and recorded technical evidence. |
 
-## Status
+**Stack:** HTML, CSS, vanilla JavaScript and SVG for the product; Python and Node for deterministic validation; GitHub Actions and a locked Playwright driver for browser QA. No heavyweight frontend framework.
 
-V1 is merged and published. V2 is a separate review candidate; its PR does not change the deployed V1 or Pages configuration. A human must explicitly approve the V2 merge.
+## Limitations
 
-## Client-only failover scenario
+This is an architecture and reliability demo, not an operational console. It exposes no real providers, worker inventory, prompts, responses, private tasks, measured quota or control-plane endpoints. Play, step and reset change authored client-side state only.
 
-Simulate a reviewer outage to see activity move to a fallback node. Reset returns to the fixed scenario. These controls change demo data only; they do not retry, route or invoke actual work.
+The public schema supports a future upstream sanitized snapshot, but no live feed is connected. Provider-side included-only eligibility and spend controls require verification outside this dashboard. The demo cannot establish actual billing state or production failover reliability.
 
-Validation and the merge/publication gates are documented in [VALIDATION.md](VALIDATION.md).
+Recorded browser QA covers Chrome. Firefox, Safari and a complete screen-reader/accessibility conformance audit remain unperformed. This README uses static SVGs because GitHub does not support SVG animation; the live experience provides the richer interaction.
 
-## V2 scenario lab
+---
 
-Six local simulations explain normal routing, reviewer outage, quota fencing, heartbeat loss, bounded retry and independent verification before a closed human merge gate. Play/pause, step and reset change only finite client-side fixtures. Packet animation follows the active worker; motion stops with playback and honors reduced motion. Switching scenarios cancels prior timers.
-
-The trust-boundary diagram describes real architectural principles, not a connected telemetry feed. Public state remains the V1 finite contract; unknown quota/health is never inferred as measured. No task content, private logs or provider identifiers are added.
-
-The site has no framework, build step, runtime dependency or CDN. A separate hash-locked Playwright driver is used only by read-only CI against Chrome already installed on the hosted runner. It never installs a browser or enters the shipped page. CI produces sanitized screenshots at desktop/tablet/mobile widths.
+**Alberto Reyes Castro · AI engineering**  
+[Explore the live system ↗](https://albertoreyescastro.github.io/agent-control-center/) · [Inspect the source](https://github.com/albertoreyescastro/agent-control-center) · [Review the trust model](SECURITY.md)

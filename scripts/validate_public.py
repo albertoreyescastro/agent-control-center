@@ -4,6 +4,7 @@ import re
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+import xml.etree.ElementTree as ET
 from contract import loads, validate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +12,11 @@ APPROVED = {'.nojekyll', '.gitignore', 'README.md', 'SECURITY.md', 'VALIDATION.m
             'index.html', 'assets/app.js', 'assets/demo-state.js', 'assets/styles.css', 'assets/simulation.js', 'assets/favicon.svg',
             'public-state.schema.json', 'scripts/contract.py', 'scripts/validate_public.py',
             'tests/test_public.py', 'tests/dom-smoke.cjs', 'tests/simulation.cjs', 'tests/browser-qa.cjs', 'tests/browser-tools/package.json', 'tests/browser-tools/package-lock.json', '.github/workflows/validate.yml'}
+APPROVED |= {'tests/test_readme.py',
+             'docs/readme/hero.svg', 'docs/readme/hero-narrow.svg',
+             'docs/readme/control-plane.svg', 'docs/readme/control-plane-narrow.svg',
+             'docs/readme/trust-boundary.svg', 'docs/readme/trust-boundary-narrow.svg',
+             'docs/readme/badge-demo.svg', 'docs/readme/badge-readonly.svg', 'docs/readme/badge-static.svg'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
@@ -47,6 +53,32 @@ class Page(HTMLParser):
                 self.bad = True
 
 
+def static_svg(text):
+    """Presentation assets admit only static, self-contained SVG primitives."""
+    if '<!' in text or '<?' in text:
+        raise ValueError('SVG declaration')
+    root = ET.fromstring(text)
+    ns = '{http://www.w3.org/2000/svg}'
+    tags = {'svg', 'title', 'desc', 'defs', 'linearGradient', 'stop', 'marker', 'path', 'rect', 'g', 'text'}
+    attrs = {'id', 'width', 'height', 'viewBox', 'role', 'aria-labelledby', 'aria-label',
+             'x', 'y', 'x2', 'y2', 'rx', 'fill', 'stroke', 'stroke-width', 'stroke-dasharray',
+             'd', 'font-family', 'font-size', 'font-weight', 'text-anchor', 'offset',
+             'stop-color', 'refX', 'refY', 'markerWidth', 'markerHeight', 'orient', 'marker-end'}
+    if root.tag != ns + 'svg':
+        raise ValueError('SVG root')
+    ids = {node.attrib['id'] for node in root.iter() if 'id' in node.attrib}
+    for node in root.iter():
+        if not node.tag.startswith(ns) or node.tag[len(ns):] not in tags or set(node.attrib) - attrs:
+            raise ValueError('active or unsupported SVG')
+        for value in node.attrib.values():
+            if re.search(r'(?i)(https?:|data:|javascript:)', value):
+                raise ValueError('SVG resource')
+            if 'url(' in value:
+                match = re.fullmatch(r'url\(#([A-Za-z][A-Za-z0-9_-]*)\)', value)
+                if not match or match[1] not in ids:
+                    raise ValueError('SVG reference')
+
+
 def check(root=ROOT):
     errors = []
     seen = set()
@@ -74,6 +106,11 @@ def check(root=ROOT):
             continue
         if any(re.search(rx, text) for rx in DENY) or any(lit in text for lit in PRIVATE):
             errors.append('sensitive public content')
+        if rel.startswith('docs/readme/'):
+            try:
+                static_svg(text)
+            except (ValueError, ET.ParseError):
+                errors.append('invalid README visual')
     if APPROVED - seen:
         errors.append('required file missing')
     try:
