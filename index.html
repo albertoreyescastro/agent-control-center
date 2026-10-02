@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Agent Control Center — a privacy-safe observability demo for resilient multi-agent AI orchestration.">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>Agent Control Center · Alberto Reyes Castro</title>
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -16,12 +18,12 @@
 <section class="hero">
   <div><p class="eyebrow">MULTI-AGENT AI · OBSERVABILITY</p><h1>One control plane.<br><span>Every agent visible.</span></h1>
   <p class="lede">A privacy-safe observability interface for a resilient multi-provider AI orchestration system spanning cloud and local workers.</p></div>
-  <div class="system-health"><span class="pulse"></span><div><strong>System nominal</strong><small id="lastUpdate">Sanitized portfolio snapshot</small></div></div>
+  <div class="system-health"><span class="pulse"></span><div><strong>Demo environment</strong><small id="lastUpdate">Sanitized portfolio snapshot</small></div></div>
 </section>
 <section class="stats" id="stats"></section>
 <section class="workspace">
   <div class="panel topology-panel">
-    <div class="panel-head"><div><p class="eyebrow">LIVE TOPOLOGY</p><h2>Orchestration graph</h2></div><div class="legend"><span><i class="dot online"></i>Online</span><span><i class="dot busy"></i>Busy</span><span><i class="dot offline"></i>Unavailable</span></div></div>
+    <div class="panel-head"><div><p class="eyebrow">DEMO TOPOLOGY</p><h2>Orchestration graph</h2></div><div class="legend"><span><i class="dot online"></i>Online</span><span><i class="dot busy"></i>Busy</span><span><i class="dot offline"></i>Unavailable</span></div></div>
     <div class="graph" id="graph">
       <svg class="edges" id="edges" aria-hidden="true"></svg>
       <button class="core node" data-id="control"><span class="core-ring"></span><b>CONTROL<br>PLANE</b><small>Adaptive router</small></button>
@@ -32,7 +34,7 @@
 </section>
 <section class="lower-grid">
  <div class="panel"><div class="panel-head"><div><p class="eyebrow">DURABLE QUEUE</p><h2>Work in flight</h2></div><span class="count" id="queueCount"></span></div><div id="queue" class="queue"></div></div>
- <div class="panel"><div class="panel-head"><div><p class="eyebrow">EVENT STREAM</p><h2>Recent signals</h2></div><span class="live-label"><i></i> LIVE DEMO</span></div><div id="events" class="events"></div></div>
+ <div class="panel"><div class="panel-head"><div><p class="eyebrow">EVENT STREAM</p><h2>Recent signals</h2></div><span class="live-label"><i></i> SIMULATED STREAM</span></div><div id="events" class="events"></div></div>
 </section>
 <section class="architecture panel">
  <div><p class="eyebrow">ENGINEERING PRINCIPLES</p><h2>Designed for failure, not just the happy path.</h2></div>
