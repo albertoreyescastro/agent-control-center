@@ -53,5 +53,17 @@ class PublicBoundaryTests(unittest.TestCase):
     def test_invalid_optional_snapshot_rejected(self):
         (self.root/'public-state.json').write_text('{"secret":"hidden"}');self.assertTrue(check(self.root))
 
+    def test_nested_git_directory_is_not_an_exemption(self):
+        p=self.root/'assets/.git/private.txt';p.parent.mkdir();p.write_text('unapproved')
+        self.assertTrue(check(self.root))
+    def test_encoded_secret_free_text_cannot_pass_public_contract(self):
+        for field,value in [('role','c2VjcmV0'),('label','Worker 01\\u0000hidden'),('id','worker-01/../hidden'),('surface','https://unapproved.invalid')]:
+            state=copy.deepcopy(self.state);state['agents'][0][field]=value
+            with self.assertRaises(ValueError):validate(state,self.schema)
+    def test_csp_and_unsafe_rendering_mutations_rejected(self):
+        p=self.root/'index.html';original=p.read_text()
+        for mutation in [original.replace("connect-src 'none'","connect-src 'self'"),original.replace('<body>','<body onload="unsafe()">'),original.replace('src="assets/app.js"','src="https://unapproved.invalid/app.js"')]:
+            p.write_text(mutation);self.assertTrue(check(self.root))
+        p.write_text(original);js=self.root/'assets/app.js';js.write_text(js.read_text()+'\nnode.innerHTML = state.label;');self.assertTrue(check(self.root))
 
 if __name__=='__main__':unittest.main()

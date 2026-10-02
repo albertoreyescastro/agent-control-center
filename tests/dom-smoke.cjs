@@ -21,5 +21,12 @@ function surface(ids){
  const fallback=p.all().find(n=>n.dataset.id==='worker-05');fallback.listeners.click();assert(p.roots['#inspector'].textContent.includes('independent reviewer'));
  p.motion.matches=true;p.motion.listeners.change();assert(!p.all().some(n=>n.tag==='animateMotion'));
  p.roots['#resetDemo'].listeners.click();assert(!p.roots['#simulate'].disabled);p.roots['.core'].listeners.click();assert(p.roots['#inspector'].textContent.includes('Adaptive router'));
+ const worker=p.all().find(n=>n.dataset.id==='worker-01');worker.listeners.focus();assert(p.roots['#inspector'].textContent.includes('Local code worker'));worker.listeners.mouseenter();
+ p.motion.matches=false;p.motion.listeners.change();assert(p.all().some(n=>n.tag==='animateMotion'));
+ for(const mutation of [s=>s.mode='sanitized_snapshot',s=>s.agents[0].label='<img src=x onerror=alert(1)>',s=>s.agents.push(s.agents[0]),s=>s.queue_summary.queued=true,s=>s.secret='private',s=>s.agents[0].status='untrusted']){
+   const bad=surface(['stats','agents','graph','edges','inspector','queueCount','queue','events','lastUpdate','simulate','resetDemo','scenarioStatus']);
+   vm.runInContext(fs.readFileSync('assets/demo-state.js','utf8'),bad.context);mutation(bad.context.window.DEMO_STATE);vm.runInContext(fs.readFileSync('assets/app.js','utf8'),bad.context);
+   assert(bad.roots['#simulate'].disabled);assert.equal(bad.roots['#agents'].children.length,0);assert(bad.roots['#scenarioStatus'].textContent.includes('rejected'));
+ }
 console.log('Demo interaction smoke: PASS (DOM harness; browser layout pending)');
 })().catch(e=>{console.error(e);process.exit(1)});

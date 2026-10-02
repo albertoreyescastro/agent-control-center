@@ -1,7 +1,20 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
-const state = JSON.parse(JSON.stringify(window.DEMO_STATE));
+function validateDemo(s) {
+  const closed=(x,keys)=>x && typeof x==='object' && !Array.isArray(x) && Object.keys(x).length===keys.length && keys.every(k=>Object.hasOwn(x,k));
+  if(!closed(s,['schema_version','generated_at','mode','agents','queue_summary']) || s.schema_version!=='1.0' || s.mode!=='demo' || typeof s.generated_at!=='string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(s.generated_at) || !Number.isFinite(Date.parse(s.generated_at)))throw Error('Invalid demo');
+  // This fixed topology has six positions; exported snapshots are a separate contract.
+  if(!Array.isArray(s.agents)||s.agents.length!==6)throw Error('Invalid demo topology');
+  s.agents.forEach((a,i)=>{
+    const suffix=String(i+1).padStart(2,'0');
+    if(!closed(a,['id','label','status','role','surface','quota_state']) || a.id!=='worker-'+suffix || a.label!=='Worker '+suffix || !['online','busy','offline','limited','unknown'].includes(a.status) || !['code worker','independent reviewer','fallback worker','unknown'].includes(a.role) || !['local','cloud','cloud_async','hybrid','unknown'].includes(a.surface) || a.quota_state!=='unknown')throw Error('Invalid demo worker');
+  });
+  if(!closed(s.queue_summary,['queued','running','blocked']) || Object.values(s.queue_summary).some(x=>!Number.isInteger(x)||x<0||x>1000000))throw Error('Invalid demo counts');
+  return s;
+}
+try {
+const state = validateDemo(JSON.parse(JSON.stringify(window.DEMO_STATE)));
 const baseline = JSON.parse(JSON.stringify(state));
 const names = ['Local code worker','Cloud reviewer','Cloud review worker','API review worker','Fallback engineer','Reserve code worker'];
 const events = [];
@@ -117,3 +130,9 @@ motion.addEventListener('change',draw);addEventListener('resize',draw);
 events.push('Simulated task accepted. Human merge gate stays closed.');
 $('#lastUpdate').textContent='Fixed demo data · no live telemetry';
 render();
+} catch {
+  for(const id of ['stats','agents','edges','queue','events','inspector'])$('#'+id).replaceChildren();
+  $('#simulate').disabled=true;$('#resetDemo').disabled=true;
+  $('#lastUpdate').textContent='Demo unavailable';
+  $('#scenarioStatus').textContent='Demo payload rejected. No telemetry or worker connection.';
+}

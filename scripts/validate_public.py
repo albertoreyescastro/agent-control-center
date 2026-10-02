@@ -52,7 +52,7 @@ def check(root=ROOT):
     seen = set()
     for p in root.rglob('*'):
         rel = p.relative_to(root).as_posix()
-        if '.git' in p.relative_to(root).parts:
+        if p.relative_to(root).parts[0] == '.git':
             continue
         if p.is_symlink():
             errors.append('symlink prohibited')
