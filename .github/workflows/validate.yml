@@ -7,13 +7,37 @@ permissions:
   contents: read
 jobs:
   validate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - run: python -B scripts/validate_public.py
       - run: python -B -m unittest discover -s tests -v
-      - run: node --check assets/app.js && node --check assets/demo-state.js
+      - run: node --check assets/app.js && node --check assets/demo-state.js && node --check assets/simulation.js
+      - run: node tests/simulation.cjs
       - run: node tests/dom-smoke.cjs
+      - name: Install browser driver only (no browser download)
+        run: |
+          mkdir -p "$RUNNER_TEMP/public-qa"
+          cp tests/browser-tools/package*.json "$RUNNER_TEMP/public-qa/"
+          npm ci --prefix "$RUNNER_TEMP/public-qa" --ignore-scripts --no-audit --no-fund
+      - name: Real Chrome QA at desktop, tablet and mobile widths
+        env:
+          QA_CHROME_CHANNEL: chrome
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 > "$RUNNER_TEMP/public-qa-server.log" 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/public-qa/node_modules/playwright-core"
+          export QA_OUTPUT="$RUNNER_TEMP/public-browser-evidence"
+          node tests/browser-qa.cjs
+      - name: Preserve sanitized QA screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # reviewed v4.6.2
+        with:
+          name: public-v2-browser-evidence
+          path: ${{ runner.temp }}/public-browser-evidence
+          if-no-files-found: error
+          retention-days: 14
