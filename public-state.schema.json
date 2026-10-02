@@ -1,0 +1,112 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "mode",
+    "agents",
+    "queue_summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mode": {
+      "enum": [
+        "demo",
+        "sanitized_snapshot"
+      ]
+    },
+    "agents": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "status",
+          "role",
+          "surface",
+          "quota_state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "worker-(?:0[1-9]|1[0-9]|20)"
+          },
+          "label": {
+            "type": "string",
+            "pattern": "Worker (?:0[1-9]|1[0-9]|20)"
+          },
+          "status": {
+            "enum": [
+              "online",
+              "busy",
+              "offline",
+              "limited",
+              "unknown"
+            ]
+          },
+          "role": {
+            "enum": [
+              "code worker",
+              "independent reviewer",
+              "fallback worker",
+              "unknown"
+            ]
+          },
+          "surface": {
+            "enum": [
+              "local",
+              "cloud",
+              "cloud_async",
+              "hybrid",
+              "unknown"
+            ]
+          },
+          "quota_state": {
+            "enum": [
+              "unknown"
+            ]
+          }
+        }
+      }
+    },
+    "queue_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queued",
+        "running",
+        "blocked"
+      ],
+      "properties": {
+        "queued": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "running": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public aggregate telemetry",
+  "description": "Finite generic aliases and enums only. No private source strings or operational task identifiers."
+}
