@@ -1,48 +1,46 @@
-# V2 validation checkpoint
+# V2 validation and recovery checkpoint
 
-V1 is merged, browser-validated and published per owner confirmation. This source candidate preserves its public contract and Pages settings. Historical V1 evidence follows below.
+## Canonical state
 
-## Current automated evidence
+V1 is merged, browser-validated and published per owner confirmation. V2 is PR #2 on `feat/control-center-v2`; it is not merged or deployed. Main was verified at `e6901628068741ed31584715506818dacf8dd398`. V2 does not modify Pages configuration, any private repository or the personal website.
 
-- 20 Python boundary/leakage regressions PASS.
+Validated implementation head: `f26bece2e6b6a1f504f45c1c36b8f385497d9df0`. [Exact-head CI run 37052869327](https://github.com/albertoreyescastro/agent-control-center/actions/runs/37052869327) passed on 2026-10-02. Pull-request CI checks GitHub's synthetic merge against main. A later documentation-only checkpoint must also pass its own exact-head CI; obtain the canonical final head and check from [PR #2](https://github.com/albertoreyescastro/agent-control-center/pull/2).
+
+## Deterministic evidence
+
+- 20 Python boundary/leakage/schema regressions PASS.
 - 440 assertions across all six scenario frame sequences PASS.
 - DOM behavior PASS: 39 transitions, reset, terminal gate, focus/hover, stale callbacks, reduced-motion changes, hidden-tab pause and malformed demo fail-closed state.
 - JavaScript syntax and public inventory/schema/CSP/no-unsafe-sink validation PASS.
-- Real Chrome QA is mandatory in existing PR CI: widths 1440, 1024, 768, 390 and 320; every scenario, worker inspection, keyboard focus/accordion, overflow, clipping, animation, reduced motion, console errors and asset requests. Read exact-head run status/logs and artifacts from the PR before declaring readiness.
 
-No provider, private repository, personal website or Pages setting is involved. Source-only controls cannot invoke workers or merge. The driver is hash-locked and installs no browser; runner Chrome is used. Screenshots/results remain CI artifacts, not added to public state or deployed assets.
+Run `python -B scripts/validate_public.py`, `python -B -m unittest discover -s tests -v`, `node tests/simulation.cjs`, `node tests/dom-smoke.cjs` and syntax checks for the three asset scripts. CI executes these checks before browser QA.
 
-## Historical V1 evidence (superseded current state)
+## Real-browser evidence
 
-# Validation and recovery checkpoint
+Chrome **154.0.8037.57** on the standard hosted Ubuntu runner rendered the actual pages. This is real browser validation, separate from the deterministic DOM test.
 
-Status: implementation under review; no publication. This frontend always renders simulated data. The failover button changes client-only demo state and invokes no workers.
+- Widths 1440, 1024, 768, 390 and 320: PASS.
+- All six scenarios at every width, step-to-gate and reset: PASS (30 scenario/viewport combinations).
+- All worker inspections; mobile touch; desktop hover and restored selection: PASS.
+- Real keyboard navigation, 50 Tab traversals, visible focus, inspector relationships and accordion activation: PASS.
+- Playback/pause and reduced-motion CSS/SVG behavior: PASS.
+- Horizontal overflow: 0; clipped topology nodes: 0; console/runtime/HTTP asset errors: 0 at every width.
+- Six same-origin requests per viewport; no external telemetry requests. No CSP error was reported.
+- Malformed browser demo payload: rejected, no worker nodes, controls disabled.
+- Desktop/tablet/mobile full-page screenshots were visually inspected after correcting the capture scroll position. Hero, topology, inspector, trust boundary and final sections remain readable without overlap.
 
-Run `python -B scripts/validate_public.py`, `python -B -m unittest discover -s tests -v`, and `node --check assets/app.js`.
+The `public-v2-browser-evidence` CI artifact contains screenshots and results for 14 days. Screenshot markers in the job log also preserve public-only image evidence. The browser driver is integrity-locked, installed with scripts disabled in runner temporary storage, and uses already-installed Chrome. No browser download, provider or AI credit is required.
 
-The public scanner uses an explicit file inventory, strict UTF-8, symlink rejection and credential/private-identifier checks. The detector scans its own source; test strings are constructed without embedding a complete secret-shaped fixture. Unknown files fail closed. New files require an explicit reviewed inventory change.
+## Security and review
 
-The contract validator supports only the project's documented closed schema subset. Unsupported keywords fail closed. Generic aliases and finite role/status values replace free-text operational fields. This reduces accidental data leakage; it is not proof that arbitrary encoded secrets can be detected.
+The V1 finite public schema and bundled fixture remain unchanged. Simulation narratives are authored finite fixtures, not arbitrary operational text. Unknown telemetry remains Unknown/Not observable. The browser retains `connect-src 'none'`, external-only local scripts/styles and text-only DOM rendering. There is no provider, write/admin or merge endpoint.
 
-CI uses a pinned checkout, contents:read, no persisted credentials, no provider calls and no dependency downloads. Branch protection must require the check before merge to make it an enforced repository gate.
+Primary Codex source review covered stale timer rejection, attempt ceilings, closed terminal gates, focus stability, malformed payload rejection, public inventory, unsafe sinks and dependency boundaries. No new blocking finding remains in this bounded public implementation. Pattern scanners cannot prove absence of deliberately encoded secrets; diff review remains necessary. CI is read-only, uses pinned Actions and does not retain checkout credentials.
 
-Historical NEXT_ACTION (superseded below): finish independent review and exact-head validation, then obtain explicit human merge approval. Pages remains disabled until separate publication approval. No direct private telemetry connection exists.
+## Limits and next action
 
-## Takeover validation — 2026-10-02
+Firefox/Safari and assistive-technology testing were not performed. Keyboard and semantic basics passed in Chrome; this is not a complete accessibility conformance audit. Demonstrations measure no real provider health, quota or independent model-family outcome.
 
-- Public-surface validator: PASS, including detector-source scanning.
-- Python adversarial contract/scanner tests: 13/13 PASS.
-- Node DOM interaction smoke: PASS for inspection, failover/reset, role preservation and reduced-motion SVG removal.
-- JavaScript syntax, JSON/YAML parsing and diff whitespace: PASS locally.
-- Visual Chromium desktop/mobile and accessibility layout verification: BLOCKED. Runtime Chromium binary is absent; standard browser download failed. DOM smoke is not a rendering engine and cannot establish visual layout, contrast or assistive-technology behavior.
-- Publication: not performed. This remains a simulated demo with connect-src none.
+**NEXT_ACTION:** review the exact PR head and successful CI, then obtain explicit human V2 merge approval. Do not merge or deploy autonomously. V1 remains deployed until the owner authorizes the merge. Existing Pages configuration is unchanged; this checkpoint does not authorize publication or workflow/settings changes.
 
-Historical NEXT_ACTION (superseded below): run `node tests/dom-smoke.cjs` and deterministic checks on the exact PR head; inspect the interface in a real browser at 390px and 1440px with keyboard and reduced motion, then obtain explicit merge approval. Separate publication approval is required for Pages.
-
-Independent local source review: no remaining high/medium blockers in this bounded implementation. The review covered the contract, scanner, rendering, CSP and simulation/motion paths. It used a separate reviewer in the same model family; no cross-provider review or premium worker call was made. A real-browser rendering check remains the merge-readiness limitation.
-
-## Current final adversarial checkpoint
-
-Current suite: 17/17 Python tests PASS, boundary scanner PASS, Node DOM simulation PASS. Runtime demo payload rejection, absolute Unix private-source path detection, nested metadata-directory scanning, focus/hover handlers, resumed/reduced SVG motion and narrower percentage node bounds are covered. CSP/static markup checks PASS. No real browser rendered this head. Local Chromium remains absent; available cloud browser rejects localhost with net::ERR_BLOCKED_BY_CLIENT. No dependency installed and no site published. Desktop/mobile layout, actual keyboard focus visibility, contrast, overflow, console/CSP runtime and assistive technology QA remain OPEN. Final source review used the primary OpenAI Codex model only; heterogeneous included/free review was unavailable. Earlier independent same-family review was on the previous head.
-
-NEXT_ACTION: human review plus real-browser 390px/1440px, keyboard/tap/hover, focus, inspector, motion, stale/unknown and runtime/CSP checks before unconditional merge readiness. Separate explicit merge approval and publication/deployment approval remain required.
+Earlier V1 checkpoints are preserved in Git history; their pre-publication/browser blockers are superseded by the owner's V1 status and the V2 evidence above.
