@@ -7,13 +7,13 @@
 
 ![Simulated data](docs/readme/badge-demo.svg) ![No write controls](docs/readme/badge-readonly.svg) ![Static, no framework](docs/readme/badge-static.svg)
 
+**[LIVE DEMO ↗](https://albertoreyescastro.github.io/agent-control-center/)** · **[ARCHITECTURE ↓](#architecture)** · **[SCENARIOS ↓](#scenarios)** · **[SECURITY / TRUST MODEL ↓](#security-and-trust-model)**
+
 # Engineering the space between agents
 
 A public, interactive explanation of a **resilient multi-agent control plane**: capability-aware routing across local and cloud execution, independent verification, bounded recovery and human-controlled promotion.
 
 **SANITIZED / SIMULATED PORTFOLIO DEMO.** Real architectural concepts; authored demo activity. No live telemetry, provider calls or operational access.
-
-**[LIVE DEMO ↗](https://albertoreyescastro.github.io/agent-control-center/)** · **[ARCHITECTURE ↓](#architecture)** · **[SCENARIOS ↓](#scenarios)** · **[SECURITY / TRUST MODEL ↓](#security-and-trust-model)**
 
 [Why I built it](#why-i-built-it) · [Engineering decisions](#engineering-decisions) · [Validation](#validation) · [Run locally](#run-locally) · [Source map](#source-map) · [Limitations](#limitations)
 
