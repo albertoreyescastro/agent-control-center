@@ -4,19 +4,151 @@
   "description": "Allow-listed public contract. Never add secrets, prompts, private repository paths, authenticated URLs, emails, account identifiers or raw logs.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version","generated_at","mode","agents","queue_summary"],
+  "required": [
+    "schema_version",
+    "generated_at",
+    "mode",
+    "agents",
+    "queue_summary"
+  ],
   "properties": {
-    "schema_version":{"const":"1.0"},
-    "generated_at":{"type":"string","format":"date-time"},
-    "mode":{"enum":["demo","sanitized_snapshot"]},
-    "agents":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","label","status","role","surface"],"properties":{
-      "id":{"type":"string","pattern":"^[a-z0-9-]+$"},"label":{"type":"string","maxLength":40},
-      "status":{"enum":["online","busy","offline","limited","unknown"]},"role":{"type":"string","maxLength":60},
-      "surface":{"enum":["local","cloud","cloud_async","hybrid"]},"availability_reason":{"type":"string","maxLength":100},
-      "task_summary":{"type":"string","maxLength":120},"token_usage":{"type":["integer","null"],"minimum":0},
-      "quota_state":{"enum":["available","limited","unavailable","unknown"]}
-    }}},
-    "queue_summary":{"type":"object","additionalProperties":false,"required":["queued","running","blocked"],"properties":{"queued":{"type":"integer","minimum":0},"running":{"type":"integer","minimum":0},"blocked":{"type":"integer","minimum":0}}},
-    "events":{"type":"array","maxItems":20,"items":{"type":"object","additionalProperties":false,"required":["kind","summary"],"properties":{"kind":{"enum":["routing","claim","complete","blocked","recovery","gate"]},"summary":{"type":"string","maxLength":140}}}}
+    "schema_version": {
+      "const": "1.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mode": {
+      "enum": [
+        "demo",
+        "sanitized_snapshot"
+      ]
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "status",
+          "role",
+          "surface"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9 ._-]+$"
+          },
+          "status": {
+            "enum": [
+              "online",
+              "busy",
+              "offline",
+              "limited",
+              "unknown"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 60,
+            "pattern": "^[A-Za-z0-9 /+&()._-]+$"
+          },
+          "surface": {
+            "enum": [
+              "local",
+              "cloud",
+              "cloud_async",
+              "hybrid"
+            ]
+          },
+          "availability_reason": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9 /+&().:_-]+$"
+          },
+          "task_summary": {
+            "type": "string",
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9 /+&().,:_-]+$"
+          },
+          "token_usage": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "quota_state": {
+            "enum": [
+              "available",
+              "limited",
+              "unavailable",
+              "unknown"
+            ]
+          }
+        }
+      },
+      "maxItems": 20
+    },
+    "queue_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queued",
+        "running",
+        "blocked"
+      ],
+      "properties": {
+        "queued": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "running": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "summary"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "routing",
+              "claim",
+              "complete",
+              "blocked",
+              "recovery",
+              "gate"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 140,
+            "pattern": "^[A-Za-z0-9 /+&().,:_-]+$"
+          }
+        }
+      }
+    }
   }
 }
