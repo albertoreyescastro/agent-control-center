@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const sim=require('../assets/simulation.js');let checks=0;const check=(ok)=>{assert(ok);checks++;};
+const stories=sim.scenarios();check(stories.length===6);check(new Set(stories.map(x=>x.id)).size===6);
+for(const s of stories){let attempts=0;for(let i=0;i<s.count;i++){const v=sim.view(s.id,i);check(v.mode==='simulated');check(v.gate==='closed');check(v.workers.length===6);check(v.attempt>=attempts&&v.attempt<=2);attempts=v.attempt;check(v.workers.every(w=>w.quota==='Not observable'));check(v.workers.filter(w=>w.status==='busy').length<=1);check(v.events.length===i+1);check(v.complete===(i===s.count-1));if(v.frame.key==='execute')check(v.workers.find(w=>w.id===v.frame.node).status==='busy');v.workers[0].label='mutation';check(sim.view(s.id,i).workers[0].label==='Local executor');}check(sim.view(s.id,s.count-1).frame.key==='gate');}
+check(sim.view('outage',5).workers.find(x=>x.id==='worker-02').status==='offline');check(sim.view('outage',5).workers.find(x=>x.id==='worker-03').status==='busy');check(sim.view('quota',4).workers.find(x=>x.id==='worker-02').status==='limited');check(sim.view('heartbeat',3).workers.find(x=>x.id==='worker-01').status==='unknown');check(sim.view('heartbeat',3).frame.node==='worker-05');check(sim.view('retry',5).attempt===2);
+for(const args of [['invalid',0],['normal',-1],['normal',1.5],['normal',999],['normal','1']]){assert.throws(()=>sim.view(...args));checks++;}
+const ctx={window:{}};vm.runInNewContext(fs.readFileSync('assets/demo-state.js','utf8'),ctx);const baseline=ctx.window.DEMO_STATE;sim.validateDemo(baseline);checks++;
+for(const mutate of [s=>s.mode='sanitized_snapshot',s=>s.secret='hidden',s=>s.queue_summary.running=true,s=>s.agents[0].label='<img>',s=>s.agents[0].quota_state='paid',s=>s.agents.push(s.agents[0]),s=>s.generated_at='undated',s=>s.agents[0].status='live']){const s=JSON.parse(JSON.stringify(baseline));mutate(s);assert.throws(()=>sim.validateDemo(s));checks++;}
+console.log(`Simulation contracts: PASS (${checks} assertions across all scenario frames)`);

@@ -49,10 +49,18 @@ This repository is public by design. Do not commit secrets or copy raw state fro
 
 ## Status
 
-V1 UI is under review. GitHub Pages should only be enabled after the public surface has been reviewed for sensitive information.
+V1 is merged and published. V2 is a separate review candidate; its PR does not change the deployed V1 or Pages configuration. A human must explicitly approve the V2 merge.
 
 ## Client-only failover scenario
 
 Simulate a reviewer outage to see activity move to a fallback node. Reset returns to the fixed scenario. These controls change demo data only; they do not retry, route or invoke actual work.
 
 Validation and the merge/publication gates are documented in [VALIDATION.md](VALIDATION.md).
+
+## V2 scenario lab
+
+Six local simulations explain normal routing, reviewer outage, quota fencing, heartbeat loss, bounded retry and independent verification before a closed human merge gate. Play/pause, step and reset change only finite client-side fixtures. Packet animation follows the active worker; motion stops with playback and honors reduced motion. Switching scenarios cancels prior timers.
+
+The trust-boundary diagram describes real architectural principles, not a connected telemetry feed. Public state remains the V1 finite contract; unknown quota/health is never inferred as measured. No task content, private logs or provider identifiers are added.
+
+The site has no framework, build step, runtime dependency or CDN. A separate hash-locked Playwright driver is used only by read-only CI against Chrome already installed on the hosted runner. It never installs a browser or enters the shipped page. CI produces sanitized screenshots at desktop/tablet/mobile widths.

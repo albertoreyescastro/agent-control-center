@@ -1,3 +1,19 @@
+# V2 validation checkpoint
+
+V1 is merged, browser-validated and published per owner confirmation. This source candidate preserves its public contract and Pages settings. Historical V1 evidence follows below.
+
+## Current automated evidence
+
+- 20 Python boundary/leakage regressions PASS.
+- 440 assertions across all six scenario frame sequences PASS.
+- DOM behavior PASS: 39 transitions, reset, terminal gate, focus/hover, stale callbacks, reduced-motion changes, hidden-tab pause and malformed demo fail-closed state.
+- JavaScript syntax and public inventory/schema/CSP/no-unsafe-sink validation PASS.
+- Real Chrome QA is mandatory in existing PR CI: widths 1440, 1024, 768, 390 and 320; every scenario, worker inspection, keyboard focus/accordion, overflow, clipping, animation, reduced motion, console errors and asset requests. Read exact-head run status/logs and artifacts from the PR before declaring readiness.
+
+No provider, private repository, personal website or Pages setting is involved. Source-only controls cannot invoke workers or merge. The driver is hash-locked and installs no browser; runner Chrome is used. Screenshots/results remain CI artifacts, not added to public state or deployed assets.
+
+## Historical V1 evidence (superseded current state)
+
 # Validation and recovery checkpoint
 
 Status: implementation under review; no publication. This frontend always renders simulated data. The failover button changes client-only demo state and invokes no workers.

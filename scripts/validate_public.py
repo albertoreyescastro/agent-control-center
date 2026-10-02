@@ -8,9 +8,9 @@ from contract import loads, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 APPROVED = {'.nojekyll', '.gitignore', 'README.md', 'SECURITY.md', 'VALIDATION.md',
-            'index.html', 'assets/app.js', 'assets/demo-state.js', 'assets/styles.css',
+            'index.html', 'assets/app.js', 'assets/demo-state.js', 'assets/styles.css', 'assets/simulation.js', 'assets/favicon.svg',
             'public-state.schema.json', 'scripts/contract.py', 'scripts/validate_public.py',
-            'tests/test_public.py', 'tests/dom-smoke.cjs', '.github/workflows/validate.yml'}
+            'tests/test_public.py', 'tests/dom-smoke.cjs', 'tests/simulation.cjs', 'tests/browser-qa.cjs', 'tests/browser-tools/package.json', 'tests/browser-tools/package-lock.json', '.github/workflows/validate.yml'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
@@ -97,7 +97,7 @@ def check(root=ROOT):
         for marker in ['SANITIZED DEMO', 'DEMO TOPOLOGY', 'SIMULATED STREAM']:
             if marker not in html:
                 raise ValueError('demo label')
-        js = (root / 'assets/app.js').read_text()
+        js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js'])
         if any(sink in js for sink in ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'eval(', 'fetch(', 'WebSocket']):
             raise ValueError('unsafe browser sink')
     except (ValueError, OSError, KeyError):

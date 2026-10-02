@@ -70,4 +70,17 @@ class PublicBoundaryTests(unittest.TestCase):
             p.write_text(mutation);self.assertTrue(check(self.root))
         p.write_text(original);js=self.root/'assets/app.js';js.write_text(js.read_text()+'\nnode.innerHTML = state.label;');self.assertTrue(check(self.root))
 
+    def test_unsafe_simulation_source_is_scanned(self):
+        p=self.root/'assets/simulation.js'
+        p.write_text(p.read_text()+'\nnode.inner'+'HTML = value;')
+        self.assertTrue(check(self.root))
+    def test_simulation_source_private_content_is_rejected(self):
+        p=self.root/'assets/simulation.js'
+        p.write_text(p.read_text()+'\n// '+'gh'+'p_'+'a'*30)
+        self.assertTrue(check(self.root))
+    def test_simulation_and_browser_test_are_required(self):
+        for file in ['assets/simulation.js','tests/browser-qa.cjs']:
+            path=self.root/file;content=path.read_bytes();path.unlink()
+            self.assertTrue(check(self.root));path.write_bytes(content)
+
 if __name__=='__main__':unittest.main()
