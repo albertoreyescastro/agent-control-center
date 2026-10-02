@@ -58,6 +58,31 @@ class ReadmePresentationTests(unittest.TestCase):
             node = ET.fromstring(p.read_text())
             self.assertTrue(node.attrib.get('aria-label') or node.attrib.get('aria-labelledby'))
 
+    def test_cta_console_identity_and_text_arrow(self):
+        ns = {'s': 'http://www.w3.org/2000/svg'}
+        for suffix in ['', '-narrow']:
+            raw = (ROOT / ('docs/readme/live-demo' + suffix + '.svg')).read_text()
+            static_svg(raw)
+            svg = ET.fromstring(raw)
+            surface = svg.find('s:rect', ns)
+            self.assertEqual(surface.attrib['fill'], '#0a1114')
+            self.assertEqual(surface.attrib['stroke'], '#4f8b7b')
+            self.assertNotIn(chr(0xfe0f), raw, 'no emoji presentation selector')
+            text = ' '.join(svg.itertext())
+            self.assertIn('LIVE DEMO / INTERACTIVE', text)
+            self.assertIn('Explore Agent', text)
+            self.assertIn('Control Center', text)
+            self.assertIn('No live telemetry', text)
+            self.assertIn('↗', text)
+            # Small status accents cannot regress into the previous full mint slab.
+            for rect in svg.findall('s:rect', ns):
+                if rect.attrib.get('fill') == '#63eacb':
+                    self.assertLess(float(rect.attrib['width']) * float(rect.attrib['height']), 100)
+            for node in svg.findall('.//s:text', ns):
+                if 'Explore' in (node.text or '') or 'Control Center' in (node.text or ''):
+                    self.assertIn('system-ui', node.attrib.get('font-family', svg.find('s:g', ns).attrib.get('font-family', '') if svg.find('s:g', ns) is not None else ''))
+                    self.assertLessEqual(int(node.attrib.get('font-weight', '400')), 500)
+
     def test_reviewed_screenshot_contract(self):
         total = 0
         for name, (width, height, size, digest) in SCREENSHOTS.items():

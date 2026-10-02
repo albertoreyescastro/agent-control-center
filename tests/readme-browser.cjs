@@ -32,7 +32,20 @@ module.exports=async function(browser,out){
   assert(!(await secondary.evaluate(n=>!!n.closest('strong'))),'secondary navigation is quiet');
   const prominence=await banner.evaluate(i=>({width:i.getBoundingClientRect().width,y:i.getBoundingClientRect().top}));
   const navPosition=await secondary.boundingBox();assert(prominence.width>width*0.65);assert(prominence.y<navPosition.y);
+  const hero=article.locator('img[alt^="Agent Control Center"]');
+  const heroBox=await hero.boundingBox(),ctaBox=await banner.boundingBox();
+  assert(Math.abs(heroBox.x-ctaBox.x)<1&&Math.abs(heroBox.width-ctaBox.width)<1,'hero/CTA alignment');
+  assert(ctaBox.height<heroBox.height*0.6,'hero retains visual dominance');
+  assert(Math.abs(ctaBox.width/ctaBox.height-(width<600?480/184:960/136))<0.01,'CTA aspect ratio');
+  const svgPage=await context.newPage();
+  const svg=fs.readFileSync(path.join(__dirname,`../docs/readme/live-demo${width<600?'-narrow':''}.svg`),'utf8');
+  assert(!svg.includes('\uFE0F'),'plain text arrow');
+  await svgPage.setContent(svg);
+  const clippedText=await svgPage.locator('svg').evaluate(root=>{const {width,height}=root.viewBox.baseVal;return [...root.querySelectorAll('text')].filter(t=>{const b=t.getBBox();return b.x<0||b.y<0||b.x+b.width>width||b.y+b.height>height;}).map(t=>t.textContent);});
+  assert.deepEqual(clippedText,[],'CTA typography not clipped in Chrome');await svgPage.close();
   await banner.locator('xpath=ancestor::a').focus();assert(await banner.locator('xpath=ancestor::a').evaluate(n=>document.activeElement===n),'CTA keyboard focus');
+  await page.keyboard.press('Tab');assert(await secondary.evaluate(n=>document.activeElement===n),'CTA to secondary navigation via Tab');
+  await page.keyboard.press('Shift+Tab');assert(await banner.locator('xpath=ancestor::a').evaluate(n=>document.activeElement===n),'return to CTA via keyboard');
   await gallery.scrollIntoViewIfNeeded();
   const tileTargets=await gallery.evaluate(i=>{const r=i.getBoundingClientRect();const spots=innerWidth<600?[[.25,.28],[.75,.28],[.25,.80]]:[[.16,.45],[.5,.45],[.84,.45]];return spots.map(([x,y])=>document.elementFromPoint(r.x+r.width*x,r.y+r.height*y)?.closest('a')?.getAttribute('href'));});
   assert(tileTargets.every(h=>h===demoUrl),'all three screenshot tiles click through');
@@ -52,9 +65,11 @@ module.exports=async function(browser,out){
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
   // Scroll the README's hero into view without removing GitHub context.
   await article.locator('picture').first().scrollIntoViewIfNeeded();
-  const shot=await page.screenshot({path:path.join(out,`readme-${width}-${colorScheme}.jpg`),type:'jpeg',quality:70});
+  const shot=await page.screenshot({path:path.join(out,`readme-${width}-${colorScheme}.jpg`),type:'jpeg',quality:90});
   console.log(`README_IMAGE_${width}_${colorScheme}_BEGIN`);console.log(shot.toString('base64'));console.log(`README_IMAGE_${width}_${colorScheme}_END`);
-  results.push({width,colorScheme,theme,head,images:'PASS',gallery_dimensions:dimensions,cta_prominence:'PASS',tile_links:'PASS',alt_text:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',tables:'PASS',overflow});
+  await banner.locator('xpath=ancestor::a').press('Enter');await page.waitForURL(demoUrl,{timeout:30000});
+  assert.equal(await page.locator('#lab').count(),1,'keyboard CTA opens the canonical interactive demo');
+  results.push({width,colorScheme,theme,head,images:'PASS',gallery_dimensions:dimensions,cta_prominence:'PASS',hero_alignment:'PASS',cta_text_clipping:'PASS',plain_arrow:'PASS',cta_keyboard_navigation:'PASS',tile_links:'PASS',alt_text:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',tables:'PASS',overflow});
   await context.close();
  }
  const demoContext=await browser.newContext();const demoPage=await demoContext.newPage();
