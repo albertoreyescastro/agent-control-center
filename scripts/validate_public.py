@@ -14,7 +14,7 @@ DENY=[
 FORBIDDEN_LITERAL=["-work-event-test-20260926","automation/state/providers.json","automation/queue/"]
 errors=[]
 for p in ROOT.rglob("*"):
- if not p.is_file() or ".git" in p.parts or p.suffix not in TEXT_EXT: continue
+ if not p.is_file() or ".git" in p.parts or p.suffix not in TEXT_EXT or p == Path(__file__).resolve(): continue
  text=p.read_text("utf-8",errors="ignore")
  for rx in DENY:
   if rx.search(text): errors.append(f"{p.relative_to(ROOT)}: credential-like pattern")
