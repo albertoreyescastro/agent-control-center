@@ -1,7 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Agent Control Center Public Telemetry",
-  "description": "Allow-listed public contract. Never add secrets, prompts, private repository paths, authenticated URLs, emails, account identifiers or raw logs.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -27,6 +24,7 @@
     },
     "agents": {
       "type": "array",
+      "maxItems": 20,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -35,17 +33,17 @@
           "label",
           "status",
           "role",
-          "surface"
+          "surface",
+          "quota_state"
         ],
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[a-z0-9-]+$"
+            "pattern": "worker-(?:0[1-9]|1[0-9]|20)"
           },
           "label": {
             "type": "string",
-            "maxLength": 40,
-            "pattern": "^[A-Za-z0-9 ._-]+$"
+            "pattern": "Worker (?:0[1-9]|1[0-9]|20)"
           },
           "status": {
             "enum": [
@@ -57,46 +55,29 @@
             ]
           },
           "role": {
-            "type": "string",
-            "maxLength": 60,
-            "pattern": "^[A-Za-z0-9 /+&()._-]+$"
+            "enum": [
+              "code worker",
+              "independent reviewer",
+              "fallback worker",
+              "unknown"
+            ]
           },
           "surface": {
             "enum": [
               "local",
               "cloud",
               "cloud_async",
-              "hybrid"
+              "hybrid",
+              "unknown"
             ]
-          },
-          "availability_reason": {
-            "type": "string",
-            "maxLength": 100,
-            "pattern": "^[A-Za-z0-9 /+&().:_-]+$"
-          },
-          "task_summary": {
-            "type": "string",
-            "maxLength": 120,
-            "pattern": "^[A-Za-z0-9 /+&().,:_-]+$"
-          },
-          "token_usage": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0
           },
           "quota_state": {
             "enum": [
-              "available",
-              "limited",
-              "unavailable",
               "unknown"
             ]
           }
         }
-      },
-      "maxItems": 20
+      }
     },
     "queue_summary": {
       "type": "object",
@@ -109,46 +90,23 @@
       "properties": {
         "queued": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 1000000
         },
         "running": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 1000000
         },
         "blocked": {
           "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "events": {
-      "type": "array",
-      "maxItems": 20,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "kind",
-          "summary"
-        ],
-        "properties": {
-          "kind": {
-            "enum": [
-              "routing",
-              "claim",
-              "complete",
-              "blocked",
-              "recovery",
-              "gate"
-            ]
-          },
-          "summary": {
-            "type": "string",
-            "maxLength": 140,
-            "pattern": "^[A-Za-z0-9 /+&().,:_-]+$"
-          }
+          "minimum": 0,
+          "maximum": 1000000
         }
       }
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public aggregate telemetry",
+  "description": "Finite generic aliases and enums only. No private source strings or operational task identifiers."
 }

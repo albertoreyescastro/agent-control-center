@@ -1,25 +1,119 @@
-const DATA={meta:{mode:"SANITIZED_DEMO",updated:"Portfolio snapshot · no live private data"},agents:[
-{id:"claude",name:"Claude Local",provider:"Anthropic",surface:"Local",status:"online",role:"Code worker",task:"Idle · available for bounded coding tasks",reason:"Available",tokens:"Not exposed",quota:"Observable only at provider boundary",x:16,y:20},
-{id:"jules",name:"Jules",provider:"Google",surface:"Cloud async",status:"busy",role:"Architecture reviewer",task:"Architecture review simulation · portfolio demo",reason:"Simulated active state",tokens:"Run telemetry withheld",quota:"Within configured free/plan boundary",x:50,y:14},
-{id:"copilot",name:"Copilot Cloud",provider:"GitHub",surface:"Cloud",status:"online",role:"Review worker",task:"Idle · eligible for review routing",reason:"Available",tokens:"Not exposed",quota:"Plan boundary enforced",x:84,y:20},
-{id:"antigravity",name:"Antigravity API",provider:"Google",surface:"Cloud API",status:"limited",role:"Security reviewer",task:"Unavailable for new work · simulated",reason:"Simulated quota circuit open",tokens:"Historical aggregate only",quota:"Temporarily fenced",x:84,y:78},
-{id:"codexb",name:"Codex B",provider:"OpenAI",surface:"Cloud / local",status:"online",role:"Fallback engineer",task:"Idle · reserve capacity",reason:"Available",tokens:"Not exposed",quota:"Separate quota pool",x:50,y:86},
-{id:"codexa",name:"Codex A",provider:"OpenAI",surface:"Cloud",status:"offline",role:"Coding worker",task:"No task assigned · simulated",reason:"Simulated quota unavailable",tokens:"Not exposed",quota:"Unavailable",x:16,y:78}
-],queue:[
-{id:"demo-review",state:"running",task:"Architecture review · simulated",worker:"Cloud reviewer",attempt:"1 / 2"},
-{id:"demo-ops",state:"queued",task:"Operations resilience audit · simulated",worker:"Awaiting route",attempt:"0 / 2"},
-{id:"demo-security",state:"blocked",task:"Security review · simulated",worker:"Circuit fenced",attempt:"1 / 2"}
-],events:[
-{t:"T+04m",text:"Demo review accepted into durable queue"},
-{t:"T+03m",text:"Provider-routing policy suite passed · simulated"},
-{t:"T+02m",text:"Backoff clock propagation validated · simulated"},
-{t:"T+01m",text:"Cloud provider circuit state refreshed · simulated"},
-{t:"T+00m",text:"Human merge gate remains closed · simulated"}
-]};
-const $=s=>document.querySelector(s),agents=$("#agents"),graph=$("#graph"),svg=$("#edges"),inspector=$("#inspector");
-function stats(){let a=DATA.agents;let vals=[[a.filter(x=>x.status!=="offline").length,"available agents"],[a.filter(x=>x.status==="busy").length,"busy"],[a.filter(x=>x.status==="offline").length,"offline"],[DATA.queue.length,"queue entries"],[a.filter(x=>x.status==="limited").length,"quota fenced"]];$("#stats").innerHTML=vals.map(v=>`<div class="stat"><b>${v[0]}</b><small>${v[1]}</small></div>`).join("")}
-function renderAgents(){agents.innerHTML=DATA.agents.map(a=>`<button class="node status-${a.status}" style="left:${a.x}%;top:${a.y}%" data-id="${a.id}"><i class="status-pin"></i><b>${a.name}</b><small>${a.role} · ${a.surface}</small></button>`).join("");document.querySelectorAll(".node[data-id]").forEach(n=>{n.addEventListener("click",()=>inspect(n.dataset.id));n.addEventListener("mouseenter",()=>{if(innerWidth>800)inspect(n.dataset.id)})})}
-function draw(){let r=graph.getBoundingClientRect(),cx=r.width/2,cy=r.height/2;svg.innerHTML="";DATA.agents.forEach((a,i)=>{let x=a.x/100*r.width,y=a.y/100*r.height;let line=document.createElementNS("http://www.w3.org/2000/svg","line");line.setAttribute("x1",cx);line.setAttribute("y1",cy);line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("class","edge");svg.appendChild(line);if(a.status==="busy"){let c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("r","2.2");c.setAttribute("class","packet");let anim=document.createElementNS("http://www.w3.org/2000/svg","animateMotion");anim.setAttribute("dur",(1.8+i*.17)+"s");anim.setAttribute("repeatCount","indefinite");anim.setAttribute("path",`M ${cx} ${cy} L ${x} ${y}`);c.appendChild(anim);svg.appendChild(c)}})}
-function inspect(id){document.querySelectorAll(".node").forEach(n=>n.classList.toggle("active",n.dataset.id===id));if(id==="control"){inspector.innerHTML=`<p class="eyebrow">CONTROL PLANE</p><h2>Adaptive Orchestrator</h2><div class="inspect-status"><i class="dot online"></i>ONLINE</div><div class="inspect-grid"><div class="inspect-card"><small>Routing</small><b>Capability + quota aware</b></div><div class="inspect-card"><small>Safety</small><b>Human merge gate</b></div><div class="inspect-card"><small>Queue</small><b>Durable state</b></div><div class="inspect-card"><small>Recovery</small><b>Bounded re-dispatch</b></div></div><div class="taskbox"><small class="eyebrow">RESPONSIBILITY</small><p>Chooses eligible workers, enforces routing policy, tracks leases and preserves explicit failure reasons.</p></div><p class="privacy-note">Public view: implementation details, private repository paths and operational endpoints are intentionally withheld.</p>`;return}let a=DATA.agents.find(x=>x.id===id);if(!a)return;inspector.innerHTML=`<p class="eyebrow">AGENT INSPECTOR</p><h2>${a.name}</h2><div class="inspect-status"><i class="dot ${a.status==="limited"?"busy":a.status}"></i>${a.status}</div><div class="inspect-grid"><div class="inspect-card"><small>Provider</small><b>${a.provider}</b></div><div class="inspect-card"><small>Surface</small><b>${a.surface}</b></div><div class="inspect-card"><small>Current role</small><b>${a.role}</b></div><div class="inspect-card"><small>Availability</small><b>${a.reason}</b></div><div class="inspect-card"><small>Token telemetry</small><b>${a.tokens}</b></div><div class="inspect-card"><small>Quota state</small><b>${a.quota}</b></div></div><div class="taskbox"><small class="eyebrow">CURRENT WORK</small><p>${a.task}</p></div><p class="privacy-note">Sanitized portfolio telemetry. Credentials, full prompts, private task payloads and operational identifiers are never shipped to this client.</p>`}
-function lists(){$("#queueCount").textContent=DATA.queue.length+" ENTRIES";$("#queue").innerHTML=DATA.queue.map(q=>`<div class="queue-row"><i class="qpin ${q.state}"></i><strong>${q.task}</strong><span>${q.worker}</span><span>${q.attempt}</span></div>`).join("");$("#events").innerHTML=DATA.events.map(e=>`<div class="event-row"><time>${e.t}</time><span>${e.text}</span></div>`).join("");$("#lastUpdate").textContent=DATA.meta.updated}
-stats();renderAgents();lists();inspect("control");requestAnimationFrame(draw);addEventListener("resize",draw);
+'use strict';
+const $ = s => document.querySelector(s);
+const motion = matchMedia('(prefers-reduced-motion: reduce)');
+const state = JSON.parse(JSON.stringify(window.DEMO_STATE));
+const baseline = JSON.parse(JSON.stringify(state));
+const names = ['Local code worker','Cloud reviewer','Cloud review worker','API review worker','Fallback engineer','Reserve code worker'];
+const events = [];
+let selected = 'control';
+function element(tag, text, cls) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (cls) node.className = cls;
+  return node;
+}
+function card(label, value) {
+  const node = element('div', undefined, 'inspect-card');
+  node.append(element('small', label), element('b', value));
+  return node;
+}
+function stats() {
+  const a = state.agents;
+  const values = [[a.filter(x => ['online','busy'].includes(x.status)).length, 'eligible · simulated'],
+    [a.filter(x => x.status === 'busy').length, 'busy · simulated'],
+    [a.filter(x => x.status === 'offline').length, 'offline · simulated'],
+    [Object.values(state.queue_summary).reduce((s,x) => s+x,0), 'queue · simulated'],
+    [a.filter(x => x.status === 'limited').length, 'limited · simulated']];
+  $('#stats').replaceChildren(...values.map(([value,label]) => {
+    const node = element('div',undefined,'stat');
+    node.append(element('b',value),element('small',label));return node;
+  }));
+}
+function inspect(id) {
+  selected = id;
+  document.querySelectorAll('.node').forEach(n => {
+    n.classList.toggle('active', n.dataset.id === id);
+    n.setAttribute('aria-pressed', String(n.dataset.id === id));
+  });
+  const panel = $('#inspector');
+  panel.replaceChildren(element('p','SIMULATED INSPECTOR','eyebrow'));
+  if (id === 'control') {
+    panel.append(element('h2','Adaptive router'));
+    const grid = element('div',undefined,'inspect-grid');
+    grid.append(card('Eligibility','Capability + health'),card('Capacity','Independent quota pools'),
+      card('Recovery','Lease + bounded attempts'),card('Promotion','Human merge gate'));
+    panel.append(grid,element('p','The scenario illustrates routing concepts using fixed demo data. No worker is invoked.','muted'));
+  } else {
+    const a = state.agents.find(x => x.id === id);if (!a) return;
+    const index = baseline.agents.findIndex(x => x.id === id);
+    panel.append(element('h2',names[index]),element('div',a.status+' · simulated','inspect-status'));
+    const grid = element('div',undefined,'inspect-grid');
+    grid.append(card('Role',a.role),card('Surface',a.surface),card('Quota remaining','Not observable'),
+      card('Token usage','Not observable'),card('Status evidence','Client-only scenario'),card('Data source','Simulated'));
+    panel.append(grid);
+  }
+  panel.append(element('p','Public output contains generic aliases and aggregates. Private prompts, identifiers and operational logs stay behind the exporter boundary.','privacy-note'));
+}
+function renderAgents() {
+  $('#agents').replaceChildren(...state.agents.map((a,i) => {
+    const n = element('button',undefined,`node status-${a.status} position-${i+1}`);
+    n.dataset.id = a.id;
+    n.setAttribute('aria-label',`${names[i]}, ${a.status}, simulated`);
+    n.append(element('i',undefined,'status-pin'),element('b',names[i]),element('small',`${a.status} · ${a.surface}`));
+    n.addEventListener('click',() => inspect(a.id));
+    n.addEventListener('focus',() => inspect(a.id));
+    n.addEventListener('mouseenter',() => {if (innerWidth > 800) inspect(a.id);});
+    return n;
+  }));
+}
+function draw() {
+  const svg = $('#edges'), r = $('#graph').getBoundingClientRect();
+  const positions = [[16,20],[50,14],[84,20],[84,78],[50,86],[16,78]];
+  svg.replaceChildren();
+  state.agents.forEach((a,i) => {
+    const [px,py] = positions[i], x=px/100*r.width, y=py/100*r.height;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    for (const [key,val] of Object.entries({x1:r.width/2,y1:r.height/2,x2:x,y2:y,class:'edge'})) line.setAttribute(key,val);
+    svg.append(line);
+    if (a.status === 'busy' && !motion.matches) {
+      const circle = document.createElementNS(svg.namespaceURI,'circle');
+      circle.setAttribute('r','3');circle.setAttribute('class','packet');
+      const animation = document.createElementNS(svg.namespaceURI,'animateMotion');
+      animation.setAttribute('dur','2s');animation.setAttribute('repeatCount','indefinite');
+      animation.setAttribute('path',`M ${r.width/2} ${r.height/2} L ${x} ${y}`);
+      circle.append(animation);svg.append(circle);
+    }
+  });
+}
+function lists() {
+  $('#queueCount').textContent = '3 DEMO ENTRIES';
+  const rows = [['running','Independent review','Cloud reviewer','1 / 2'],['queued','Resilience check','Awaiting route','0 / 2'],['blocked','Security review','Circuit fenced','1 / 2']];
+  $('#queue').replaceChildren(...rows.map(([status,task,worker,attempt]) => {
+    const n=element('div',undefined,'queue-row');
+    n.append(element('i',undefined,`qpin ${status}`),element('strong',task+' · simulated'),element('span',worker),element('span',attempt));return n;
+  }));
+  $('#events').replaceChildren(...events.slice(-5).reverse().map((text,i) => {
+    const n=element('div',undefined,'event-row');
+    n.append(element('time',`STEP ${events.length-i}`),element('span',text));return n;
+  }));
+}
+function render() {stats();renderAgents();lists();inspect(selected);draw();}
+$('#simulate').addEventListener('click',() => {
+  if (state.agents[1].status !== 'busy') return;
+  state.agents[1].status = 'offline';state.agents[4].status='busy';state.agents[4].role='independent reviewer';
+  events.push('Simulated lease expiry detected.','Simulated eligible fallback selected. Independent review role preserved.');
+  $('#scenarioStatus').textContent='Simulation: cloud reviewer unavailable; fallback engineer carries the review role. No live action.';
+  $('#simulate').disabled=true;render();
+});
+$('#resetDemo').addEventListener('click',() => {
+  state.agents = JSON.parse(JSON.stringify(baseline.agents));events.length=0;
+  events.push('Simulated task accepted. Human merge gate stays closed.');
+  $('#scenarioStatus').textContent='Simulation ready. No private telemetry connection.';
+  $('#simulate').disabled=false;render();
+});
+$('.core').addEventListener('click',() => inspect('control'));
+$('.core').addEventListener('focus',() => inspect('control'));
+motion.addEventListener('change',draw);addEventListener('resize',draw);
+events.push('Simulated task accepted. Human merge gate stays closed.');
+$('#lastUpdate').textContent='Fixed demo data · no live telemetry';
+render();

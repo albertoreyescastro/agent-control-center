@@ -12,10 +12,14 @@ This repository is intentionally public. It contains the portfolio UI and a **pu
 
 ## Publication model
 
-The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Free-text public fields are length- and character-constrained to reduce accidental leakage. Sanitization happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
+The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Public values use finite enums and generic numbered aliases. Task summaries, private events, exact token/quota data and unrestricted strings are excluded. Sanitization happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
 
 The UI must label simulated/demo data as such. Missing telemetry is rendered as unknown/not observable rather than inferred.
 
 ## Reporting
 
 If you find sensitive information in this repository, do not open a public issue containing it. Contact the repository owner privately.
+
+## Browser and CI enforcement
+
+The browser has connect-src none, external-only scripts/styles and text-only DOM rendering. Keyboard/tap inspection and reduced-motion behavior are explicit. CI scans its own detector source, rejects unknown files and validates payloads with duplicate-key/type/timestamp checks. A deliberate source-code encoding can evade any pattern scanner; independent diff review remains required. Require the validation job through repository protection before using CI as a mandatory gate. No Pages workflow is installed.

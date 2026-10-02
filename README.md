@@ -17,15 +17,7 @@ Agent Control Center is a public portfolio interface for visualising the health,
 
 ## Architecture boundary
 
-```
-PRIVATE CONTROL PLANE                     PUBLIC PORTFOLIO
-┌─────────────────────────┐               ┌──────────────────────────┐
-│ durable queue / router  │               │ Agent Control Center     │
-│ workers / leases        │   sanitizer   │ static GitHub Pages UI   │
-│ provider state / logs   │ ────────────> │ allow-listed snapshot    │
-│ secrets / raw prompts   │   PUSH ONLY   │ no secrets / raw logs    │
-└─────────────────────────┘               └──────────────────────────┘
-```
+A separate offline exporter constructs generic public aliases and queue counts from a validated private snapshot. The browser renders fixed demo state; the exporter is never part of the browser.
 
 The key rule is simple: **the public browser never receives credentials and never reads the private harness directly.** A future live feed must be generated upstream by a fail-closed sanitizer and conform to `public-state.schema.json`.
 
@@ -46,10 +38,10 @@ Built by **Alberto Reyes Castro** as an AI engineering portfolio project. AI age
 No build step or dependencies are required.
 
 ```bash
-python -m http.server 8000
+python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open `http://localhost:8000`.
+Open the loopback address on port 8000.
 
 ## Security
 
@@ -58,3 +50,9 @@ This repository is public by design. Do not commit secrets or copy raw state fro
 ## Status
 
 V1 UI is under review. GitHub Pages should only be enabled after the public surface has been reviewed for sensitive information.
+
+## Client-only failover scenario
+
+Simulate a reviewer outage to see activity move to a fallback node. Reset returns to the fixed scenario. These controls change demo data only; they do not retry, route or invoke actual work.
+
+Validation and the merge/publication gates are documented in [VALIDATION.md](VALIDATION.md).

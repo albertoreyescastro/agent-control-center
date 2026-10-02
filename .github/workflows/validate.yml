@@ -1,0 +1,19 @@
+name: Public surface validation
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: python -B scripts/validate_public.py
+      - run: python -B -m unittest discover -s tests -v
+      - run: node --check assets/app.js && node --check assets/demo-state.js
+      - run: node tests/dom-smoke.cjs
