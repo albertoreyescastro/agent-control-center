@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Agent Control Center — a privacy-safe observability demo for resilient multi-agent AI orchestration.">
+<title>Agent Control Center · Alberto Reyes Castro</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="noise"></div>
+<header class="topbar">
+  <a class="brand" href="./"><span class="brandmark">AC</span><span>Agent Control Center</span></a>
+  <div class="top-actions"><span class="demo-badge">SANITIZED DEMO</span><a class="link" href="https://github.com/albertoreyescastro/agent-control-center">GitHub ↗</a></div>
+</header>
+<main>
+<section class="hero">
+  <div><p class="eyebrow">MULTI-AGENT AI · OBSERVABILITY</p><h1>One control plane.<br><span>Every agent visible.</span></h1>
+  <p class="lede">A privacy-safe observability interface for a resilient multi-provider AI orchestration system spanning cloud and local workers.</p></div>
+  <div class="system-health"><span class="pulse"></span><div><strong>System nominal</strong><small id="lastUpdate">Sanitized portfolio snapshot</small></div></div>
+</section>
+<section class="stats" id="stats"></section>
+<section class="workspace">
+  <div class="panel topology-panel">
+    <div class="panel-head"><div><p class="eyebrow">LIVE TOPOLOGY</p><h2>Orchestration graph</h2></div><div class="legend"><span><i class="dot online"></i>Online</span><span><i class="dot busy"></i>Busy</span><span><i class="dot offline"></i>Unavailable</span></div></div>
+    <div class="graph" id="graph">
+      <svg class="edges" id="edges" aria-hidden="true"></svg>
+      <button class="core node" data-id="control"><span class="core-ring"></span><b>CONTROL<br>PLANE</b><small>Adaptive router</small></button>
+      <div id="agents"></div>
+    </div>
+  </div>
+  <aside class="panel inspector" id="inspector"><p class="eyebrow">INSPECTOR</p><h2>Select an agent</h2><p class="muted">Tap or hover over a node to inspect its current role, sanitized task state, availability and telemetry.</p></aside>
+</section>
+<section class="lower-grid">
+ <div class="panel"><div class="panel-head"><div><p class="eyebrow">DURABLE QUEUE</p><h2>Work in flight</h2></div><span class="count" id="queueCount"></span></div><div id="queue" class="queue"></div></div>
+ <div class="panel"><div class="panel-head"><div><p class="eyebrow">EVENT STREAM</p><h2>Recent signals</h2></div><span class="live-label"><i></i> LIVE DEMO</span></div><div id="events" class="events"></div></div>
+</section>
+<section class="architecture panel">
+ <div><p class="eyebrow">ENGINEERING PRINCIPLES</p><h2>Designed for failure, not just the happy path.</h2></div>
+ <div class="principles"><article><b>01</b><h3>Adaptive routing</h3><p>Capability, role, availability and quota-aware provider selection.</p></article><article><b>02</b><h3>Durable execution</h3><p>Leases, bounded attempts and explicit terminal states instead of silent loss.</p></article><article><b>03</b><h3>Independent review</h3><p>Cross-family review paths and human gates for consequential changes.</p></article><article><b>04</b><h3>Privacy boundary</h3><p>Public telemetry is allow-listed and sanitized before it reaches this UI.</p></article></div>
+</section>
+<section class="about"><p class="eyebrow">PROJECT</p><h2>Built by Alberto Reyes Castro</h2><p>AI engineering portfolio project exploring orchestration, reliability, observability and human-in-the-loop control across heterogeneous AI agents. This public interface intentionally exposes architecture concepts—not private infrastructure, credentials, prompts or operational logs.</p></section>
+</main>
+<footer><span>Agent Control Center · Portfolio Demo</span><span>No secrets · No private prompts · No operational endpoints</span></footer>
+<script src="assets/app.js"></script>
+</body></html>
