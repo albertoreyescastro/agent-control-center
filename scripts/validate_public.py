@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Scan every approved public file, including this detector's source."""
 import re
+import hashlib
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
@@ -17,6 +18,13 @@ APPROVED |= {'tests/test_readme.py', 'tests/readme-browser.cjs',
              'docs/readme/control-plane.svg', 'docs/readme/control-plane-narrow.svg',
              'docs/readme/trust-boundary.svg', 'docs/readme/trust-boundary-narrow.svg',
              'docs/readme/badge-demo.svg', 'docs/readme/badge-readonly.svg', 'docs/readme/badge-static.svg'}
+# Only these exact metadata-free JPEGs passed visual + OCR publication review.
+# A digest change fails closed and requires renewed privacy review, not a broad binary exemption.
+SCREENSHOTS = {
+    'docs/readme/preview-gallery.jpg': (1440, 860, 231037, '1646d1926c39a5226208d45a8a4ad45880ada872a870c08be681882fb7beddb5'),
+    'docs/readme/preview-gallery-narrow.jpg': (800, 1190, 194989, '7a7008a9a529e137b4457d72848477fc4ed5bfe1c1ef3f6049eb0507ddbc5d19'),
+}
+APPROVED |= set(SCREENSHOTS) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
@@ -95,6 +103,12 @@ def check(root=ROOT):
         if rel not in APPROVED | OPTIONAL:
             errors.append('unapproved file')
             continue
+        if rel in SCREENSHOTS:
+            data = p.read_bytes()
+            _, _, size, digest = SCREENSHOTS[rel]
+            if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
+                errors.append('unreviewed screenshot bytes')
+            continue
         try:
             if p.stat().st_size > 200_000:
                 raise ValueError('oversized file')
@@ -106,7 +120,7 @@ def check(root=ROOT):
             continue
         if any(re.search(rx, text) for rx in DENY) or any(lit in text for lit in PRIVATE):
             errors.append('sensitive public content')
-        if rel.startswith('docs/readme/'):
+        if rel.startswith('docs/readme/') and rel.endswith('.svg'):
             try:
                 static_svg(text)
             except (ValueError, ET.ParseError):

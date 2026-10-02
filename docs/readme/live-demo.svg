@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="116" viewBox="0 0 960 116" role="img" aria-labelledby="title desc">
+<title id="title">LIVE DEMO — Explore Agent Control Center</title>
+<desc id="desc">Open the interactive scenario lab. Sanitized, client-side simulation; no live telemetry.</desc>
+<rect x="1" y="1" width="958" height="114" rx="16" fill="#5be4c4" stroke="#41ba9d"/>
+<text x="28" y="48" fill="#08211c" font-family="Arial, sans-serif" font-size="30" font-weight="700">LIVE DEMO ↗</text>
+<text x="28" y="84" fill="#173f35" font-family="Arial, sans-serif" font-size="17">Client-side simulation · No live telemetry</text>
+<text x="346" y="66" fill="#08211c" font-family="Arial, sans-serif" font-size="26" font-weight="700">Explore the interactive control center</text>
+</svg>
