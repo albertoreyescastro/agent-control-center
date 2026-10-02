@@ -27,13 +27,14 @@ module.exports=async function(browser,out){
   assert((await page.url()).endsWith('#scenarios'));
   await article.getByRole('link',{name:'SECURITY / TRUST MODEL ↓',exact:true}).click();assert((await page.url()).endsWith('#security-and-trust-model'));
   const overflow=await page.evaluate(()=>Math.max(0,document.documentElement.scrollWidth-innerWidth));assert.equal(overflow,0,'page overflow');
+  const tableOverflow=await article.locator('table').evaluateAll(nodes=>nodes.map(n=>Math.max(0,n.scrollWidth-n.clientWidth)));assert(tableOverflow.every(n=>n===0),'README table overflow');
   const theme=await page.evaluate(()=>({background:getComputedStyle(document.body).backgroundColor,color:getComputedStyle(document.querySelector('article')).color}));
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
   // Scroll the README's hero into view without removing GitHub context.
   await article.locator('picture').first().scrollIntoViewIfNeeded();
   const shot=await page.screenshot({path:path.join(out,`readme-${width}-${colorScheme}.jpg`),type:'jpeg',quality:70});
   console.log(`README_IMAGE_${width}_${colorScheme}_BEGIN`);console.log(shot.toString('base64'));console.log(`README_IMAGE_${width}_${colorScheme}_END`);
-  results.push({width,colorScheme,theme,head,images:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',overflow});
+  results.push({width,colorScheme,theme,head,images:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',tables:'PASS',overflow});
   await context.close();
  }
  assert.notEqual(results[0].theme.background,results[1].theme.background,'GitHub light/dark background changes');

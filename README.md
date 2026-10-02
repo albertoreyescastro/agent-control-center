@@ -44,14 +44,14 @@ The browser illustrates this flow with finite fixtures. It does not implement a 
 
 **Six local simulations. One closed human gate.** [Open the scenario lab ↗](https://albertoreyescastro.github.io/agent-control-center/#lab), select a story, then play, pause or step through its decisions. Inspect any worker by hover, tap or keyboard focus; reset returns to the selected story's start.
 
-| Story | Failure or decision | What to watch |
-| :-- | :-- | :-- |
-| **01 · Normal routing** | A task matches an eligible executor. | Execution, review and verification stay separate. |
-| **02 · Reviewer outage** | The first reviewer becomes unavailable. | An alternate takes the review role; requirements stay intact. |
-| **03 · Quota fence** | A reviewer pool is limited. | An eligible alternate pool is selected; no paid recovery is implied. |
-| **04 · Heartbeat lost** | Worker health becomes stale or unknown. | The worker becomes ineligible; a fresh owner is selected. |
-| **05 · Bounded recovery** | An execution attempt fails. | The illustrated two-attempt ceiling stays recorded; late results cannot own newer work. |
-| **06 · Independent verification / human merge gate** | Agent output needs evidence and authority. | Separate review and deterministic checks precede a closed human gate. |
+| Scenario | What the decision demonstrates |
+| :-- | :-- |
+| **01 · Normal routing** | Match an eligible executor; keep execution, review and verification separate. |
+| **02 · Reviewer outage** | Replace an unavailable reviewer while preserving the independent review role. |
+| **03 · Quota fence** | Select an eligible alternate pool; never imply paid recovery. |
+| **04 · Heartbeat lost** | Stale or unknown health removes eligibility; select a fresh owner. |
+| **05 · Bounded recovery** | Preserve the illustrated two-attempt ceiling; reject late ownership from an older attempt. |
+| **06 · Independent verification / human merge gate** | Require separate review and deterministic checks, then stop at a closed human gate. |
 
 Task packets follow the active execution/review path. Inspector, metrics and timeline share the same scenario state. Pausing stops motion; reduced-motion preferences are respected. Changing stories cancels prior timers.
 
