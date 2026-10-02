@@ -5,9 +5,16 @@
 </picture>
 </a>
 
-![Simulated data](docs/readme/badge-demo.svg) ![No write controls](docs/readme/badge-readonly.svg) ![Static, no framework](docs/readme/badge-static.svg)
+<a href="https://albertoreyescastro.github.io/agent-control-center/">
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/live-demo-narrow.svg">
+  <img src="docs/readme/live-demo.svg" width="960" alt="LIVE DEMO ↗ — Explore the interactive Agent Control Center. Client-side simulation; no live telemetry.">
+</picture>
+</a>
 
-**[LIVE DEMO ↗](https://albertoreyescastro.github.io/agent-control-center/)** · **[ARCHITECTURE ↓](#architecture)** · **[SCENARIOS ↓](#scenarios)** · **[SECURITY / TRUST MODEL ↓](#security-and-trust-model)**
+[ARCHITECTURE ↓](#architecture) · [SCENARIOS ↓](#scenarios) · [SECURITY / TRUST MODEL ↓](#security-and-trust-model)
+
+![Simulated data](docs/readme/badge-demo.svg) ![No write controls](docs/readme/badge-readonly.svg) ![Static, no framework](docs/readme/badge-static.svg)
 
 # Engineering the space between agents
 
@@ -16,6 +23,21 @@ A public, interactive explanation of a **resilient multi-agent control plane**: 
 **SANITIZED / SIMULATED PORTFOLIO DEMO.** Real architectural concepts; authored demo activity. No live telemetry, provider calls or operational access.
 
 [Why I built it](#why-i-built-it) · [Engineering decisions](#engineering-decisions) · [Validation](#validation) · [Run locally](#run-locally) · [Source map](#source-map) · [Limitations](#limitations)
+
+## See it in action
+
+**The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the public simulation. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
+
+<a href="https://albertoreyescastro.github.io/agent-control-center/">
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/preview-gallery-narrow.jpg">
+  <img src="docs/readme/preview-gallery.jpg" width="960" alt="Three clickable views of the simulated public demo: Interactive scenario lab with six stories; Adaptive orchestration graph with local and cloud worker roles; Fail-closed publication boundary from private operations to finite public state. No live telemetry or provider calls.">
+</picture>
+</a>
+
+[Interactive scenario lab ↗](https://albertoreyescastro.github.io/agent-control-center/) · [Adaptive orchestration graph ↗](https://albertoreyescastro.github.io/agent-control-center/) · [Fail-closed publication boundary ↗](https://albertoreyescastro.github.io/agent-control-center/)
+
+The screenshots supplement the architecture diagrams below. Activity is authored and simulated; the publication boundary is conceptual, with no harness connected to the browser.
 
 ## Why I built it
 
@@ -121,7 +143,7 @@ node tests/simulation.cjs
 node tests/dom-smoke.cjs
 ```
 
-The public scanner rejects unknown files, symlinks, oversized/binary content and credential/private-identifier patterns. It scans its own source. CI uses a hash-locked browser driver in temporary storage and Chrome already present on the hosted runner; the driver is not shipped to the website.
+The public scanner rejects unknown files, symlinks, oversized content, unapproved binary files and credential/private-identifier patterns. The two screenshot composites are explicitly allow-listed and byte-fenced after visual and OCR privacy review; any pixel or metadata change requires a new review. It scans its own source. CI uses a hash-locked browser driver in temporary storage and Chrome already present on the hosted runner; the driver is not shipped to the website.
 
 </details>
 
