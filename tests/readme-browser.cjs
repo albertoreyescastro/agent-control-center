@@ -10,8 +10,8 @@ module.exports=async function(browser,out){
  for(const width of [1200,390])for(const colorScheme of ['light','dark']){
   const context=await browser.newContext({viewport:{width,height:1000},colorScheme,reducedMotion:'reduce'});
   const page=await context.newPage();
-  await page.goto(url,{waitUntil:'domcontentloaded',timeout:45000});
-  const article=page.locator('article');await article.waitFor({timeout:30000});
+  await require('./readme-navigation.cjs').observe(page,url,out,`${width}-${colorScheme}`);
+  const article=page.locator('article');
   await page.waitForFunction(()=>{const a=document.querySelector('article');return a&&a.querySelectorAll('img').length===8&&[...a.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0);},{},{timeout:30000});
   assert(await article.locator('img').evaluateAll(images=>images.every(i=>!!i.alt.trim())), 'alt text');
   const sources=await article.locator('img').evaluateAll(images=>images.map(i=>i.currentSrc));
@@ -80,3 +80,20 @@ module.exports=async function(browser,out){
  fs.writeFileSync(path.join(out,'readme-results.json'),JSON.stringify(results,null,2));
  console.log('GitHub README rendering: PASS '+JSON.stringify(results));
 };
+
+// A separate blocking check: external unavailability stays visible as BLOCKED,
+// while any assertion on a loaded README stays a rendering failure. No blanket skip.
+if(require.main===module){
+ (async()=>{
+  const out=process.env.QA_OUTPUT||'readme-evidence';fs.mkdirSync(out,{recursive:true});
+  const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+  const browser=await chromium.launch({headless:true,...(process.env.QA_CHROME_CHANNEL?{channel:process.env.QA_CHROME_CHANNEL}:{})});
+  try{await module.exports(browser,out);}
+  catch(error){
+   const result=error.observation||{status:'FAIL',rendering_pass:false,reason:'loaded_readme_assertion_or_browser_infrastructure'};
+   fs.writeFileSync(path.join(out,'observation-status.json'),JSON.stringify(result,null,2));
+   if(process.env.GITHUB_STEP_SUMMARY)fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\nGitHub README observation: **${result.status}**. Rendering PASS was not established. Inspect the separate check and evidence artifact.\n`);
+   throw error;
+  }finally{await browser.close();}
+ })().catch(error=>{console.error(error);process.exitCode=1;});
+}

@@ -18,6 +18,7 @@ jobs:
       - run: node --check assets/app.js && node --check assets/demo-state.js && node --check assets/simulation.js
       - run: node tests/simulation.cjs
       - run: node tests/dom-smoke.cjs
+      - run: node tests/readme-observation.cjs
       - name: Install browser driver only (no browser download)
         run: |
           mkdir -p "$RUNNER_TEMP/public-qa"
@@ -39,5 +40,33 @@ jobs:
         with:
           name: public-v2-browser-evidence
           path: ${{ runner.temp }}/public-browser-evidence
+          if-no-files-found: error
+          retention-days: 14
+  readme-observation:
+    name: GitHub README observation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install locked browser driver (no browser download)
+        run: |
+          mkdir -p "$RUNNER_TEMP/readme-qa"
+          cp tests/browser-tools/package*.json "$RUNNER_TEMP/readme-qa/"
+          npm ci --prefix "$RUNNER_TEMP/readme-qa" --ignore-scripts --no-audit --no-fund
+      - name: Observe exact-head GitHub rendering
+        env:
+          QA_CHROME_CHANNEL: chrome
+        run: |
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/readme-qa/node_modules/playwright-core"
+          export QA_OUTPUT="$RUNNER_TEMP/readme-browser-evidence"
+          node tests/readme-browser.cjs
+      - name: Preserve anonymous public rendering evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # reviewed v4.6.2
+        with:
+          name: github-readme-observation
+          path: ${{ runner.temp }}/readme-browser-evidence
           if-no-files-found: error
           retention-days: 14
