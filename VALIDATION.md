@@ -44,3 +44,11 @@ Firefox/Safari and assistive-technology testing were not performed. Keyboard and
 **NEXT_ACTION:** review the exact PR head and successful CI, then obtain explicit human V2 merge approval. Do not merge or deploy autonomously. V1 remains deployed until the owner authorizes the merge. Existing Pages configuration is unchanged; this checkpoint does not authorize publication or workflow/settings changes.
 
 Earlier V1 checkpoints are preserved in Git history; their pre-publication/browser blockers are superseded by the owner's V1 status and the V2 evidence above.
+
+## Core validation and external README observation
+
+The `validate` job blocks on public/schema/privacy tests, README assets and exact-byte screenshot checks, JavaScript syntax, simulation/DOM behavior, deterministic observation regressions and local Chrome dashboard QA. It makes no GitHub.com rendering request.
+
+`GitHub README observation` is a separate read-only check of the exact PR head (or main push SHA), at 1200/390 px in light/dark themes. All existing image, link, keyboard, layout and typography assertions remain blocking in that check. A loaded README assertion fails it. Transport/HTTP access failures receive at most one bounded retry; missing articles are not treated as proof of an outage. Unobserved rendering fails visibly with BLOCKED diagnostics and an anonymous screenshot, never PASS. No blanket continue-on-error or timeout increase is used. Required-check policy is a separate owner decision; do not infer visual acceptance from a green core job alone.
+
+Diagnosis of the earlier post-merge failure: scanner, 30 Python tests, 440 simulation assertions, 39 DOM transitions and local dashboard browser checks passed. Identical-source PR rendering had passed, but the main run timed out waiting for an article. The old run retained no page/status diagnostics, so its specific external/selector cause is unknown. This change prevents that ambiguity from erasing core evidence and adds diagnostics for future failures. No website or deployment behavior changes.

@@ -13,7 +13,7 @@ APPROVED = {'.nojekyll', '.gitignore', 'README.md', 'SECURITY.md', 'VALIDATION.m
             'index.html', 'assets/app.js', 'assets/demo-state.js', 'assets/styles.css', 'assets/simulation.js', 'assets/favicon.svg',
             'public-state.schema.json', 'scripts/contract.py', 'scripts/validate_public.py',
             'tests/test_public.py', 'tests/dom-smoke.cjs', 'tests/simulation.cjs', 'tests/browser-qa.cjs', 'tests/browser-tools/package.json', 'tests/browser-tools/package-lock.json', '.github/workflows/validate.yml'}
-APPROVED |= {'tests/test_readme.py', 'tests/readme-browser.cjs',
+APPROVED |= {'tests/test_readme.py', 'tests/readme-browser.cjs', 'tests/readme-navigation.cjs', 'tests/readme-observation.cjs',
              'docs/readme/hero.svg', 'docs/readme/hero-narrow.svg',
              'docs/readme/control-plane.svg', 'docs/readme/control-plane-narrow.svg',
              'docs/readme/trust-boundary.svg', 'docs/readme/trust-boundary-narrow.svg',

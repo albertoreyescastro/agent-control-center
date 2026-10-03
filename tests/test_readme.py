@@ -15,6 +15,25 @@ from validate_public import APPROVED, SCREENSHOTS, DENY, PRIVATE, check, static_
 
 
 class ReadmePresentationTests(unittest.TestCase):
+    def test_core_and_external_observation_are_separate(self):
+        workflow = (ROOT / '.github/workflows/validate.yml').read_text()
+        core, external = workflow.split('  readme-observation:', 1)
+        for command in ['scripts/validate_public.py', 'unittest discover',
+                        'tests/simulation.cjs', 'tests/dom-smoke.cjs',
+                        'tests/readme-observation.cjs', 'tests/browser-qa.cjs']:
+            self.assertIn(command, core)
+        self.assertNotIn('tests/readme-browser.cjs', core)
+        self.assertIn('node tests/readme-browser.cjs', external)
+        self.assertIn('if: always()', external)
+        self.assertNotIn('continue-on-error', workflow)
+        local = (ROOT / 'tests/browser-qa.cjs').read_text()
+        self.assertNotIn('readme-browser', local)
+        self.assertNotIn('github.com', local)
+        observation = (ROOT / 'tests/readme-browser.cjs').read_text()
+        self.assertIn('event.pull_request.head.sha', observation)
+        self.assertIn("status:'FAIL',rendering_pass:false", observation)
+        self.assertIn('process.exitCode=1', observation)
+
     def test_internal_links_and_anchors(self):
         text = (ROOT / 'README.md').read_text()
         headings = re.findall(r'^#{1,6} (.+)$', text, re.M)
