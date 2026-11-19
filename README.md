@@ -1,20 +1,20 @@
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/hero-narrow.svg">
-  <img src="docs/readme/hero.svg" width="960" alt="Agent Control Center — Reliable agents. Deliberate control. A sanitized, simulated portfolio demo by Alberto Reyes Castro.">
+  <img src="docs/readme/hero.svg" width="960" alt="Agent Control Center — Reliable agents. Deliberate control. A sanitized, simulated portfolio demo by Alberto Reyes Castro, with a conceptual control path: task, route, local or cloud execution, separate review, deterministic checks and a closed human gate.">
 </picture>
 </a>
 
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/live-demo-narrow.svg">
-  <img src="docs/readme/live-demo.svg" width="960" alt="LIVE DEMO ↗ — Explore the interactive Agent Control Center. Client-side simulation; no live telemetry.">
+  <img src="docs/readme/live-demo.svg" width="960" alt="Live demo — Explore the interactive Agent Control Center: six simulated scenarios in your browser. No live telemetry.">
 </picture>
 </a>
 
-[ARCHITECTURE ↓](#architecture) · [SCENARIOS ↓](#scenarios) · [SECURITY / TRUST MODEL ↓](#security-and-trust-model)
-
 ![Simulated data](docs/readme/badge-demo.svg) ![No write controls](docs/readme/badge-readonly.svg) ![Static, no framework](docs/readme/badge-static.svg)
+
+[Architecture](#architecture)&nbsp;· [Scenarios](#scenarios)&nbsp;· [Security&nbsp;/&nbsp;Trust&nbsp;Model](#security-and-trust-model)
 
 # Engineering the space between agents
 
