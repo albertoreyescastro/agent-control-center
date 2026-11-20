@@ -53,10 +53,10 @@ class ReadmePresentationTests(unittest.TestCase):
 
     def test_ctas_and_demo_disclosure(self):
         text = (ROOT / 'README.md').read_text()
-        for label in ['LIVE DEMO', 'ARCHITECTURE', 'SCENARIOS', 'SECURITY / TRUST MODEL',
+        for label in ['Live Demo ↗', 'Architecture', 'Scenarios', 'Security&nbsp;/&nbsp;Trust&nbsp;Model',
                       'SANITIZED / SIMULATED PORTFOLIO DEMO', 'No live telemetry']:
             self.assertIn(label, text)
-        self.assertIn('alt="LIVE DEMO ↗', text)
+        self.assertIn('alt="Live demo — Explore the interactive Agent Control Center:', text)
         self.assertIn('docs/readme/live-demo.svg', text)
         self.assertNotIn('**[ARCHITECTURE', text)
         self.assertNotIn('<script', text.lower())
@@ -71,36 +71,44 @@ class ReadmePresentationTests(unittest.TestCase):
             self.assertTrue((ROOT / file).exists())
         assets = list((ROOT / 'docs/readme').glob('*.svg'))
         self.assertEqual(len(assets), 11)
-        self.assertLess(sum(p.stat().st_size for p in assets), 30_000)
+        # The new reviewed SVG hero diagrams are more detailed, while remaining
+        # static, self-contained and size-bounded. Keep a meaningful asset budget.
+        self.assertLess(sum(p.stat().st_size for p in assets), 55_000)
+        self.assertTrue(all(p.stat().st_size < 20_000 for p in assets))
         for p in assets:
             static_svg(p.read_text())
             node = ET.fromstring(p.read_text())
             self.assertTrue(node.attrib.get('aria-label') or node.attrib.get('aria-labelledby'))
 
-    def test_cta_console_identity_and_text_arrow(self):
+    def test_cta_visual_identity_and_icon_arrow(self):
+        # The V3 CTA uses a gradient surface and a vector arrow, not the old
+        # mint console banner. Assert the real content and geometry in both sizes.
         ns = {'s': 'http://www.w3.org/2000/svg'}
-        for suffix in ['', '-narrow']:
+        for suffix, width, height in [('', '960', '104'), ('-narrow', '480', '228')]:
             raw = (ROOT / ('docs/readme/live-demo' + suffix + '.svg')).read_text()
             static_svg(raw)
             svg = ET.fromstring(raw)
+            self.assertEqual(svg.attrib['width'], width)
+            self.assertEqual(svg.attrib['height'], height)
             surface = svg.find('s:rect', ns)
-            self.assertEqual(surface.attrib['fill'], '#0a1114')
-            self.assertEqual(surface.attrib['stroke'], '#4f8b7b')
+            self.assertEqual(surface.attrib['fill'], 'url(#bg)')
+            borders = svg.findall('s:rect', ns)
+            self.assertTrue(any(r.attrib.get('stroke') == '#1c342d' for r in borders))
+            self.assertTrue(any(r.attrib.get('fill') == '#34d399' for r in borders))
             self.assertNotIn(chr(0xfe0f), raw, 'no emoji presentation selector')
             text = ' '.join(svg.itertext())
-            self.assertIn('LIVE DEMO / INTERACTIVE', text)
-            self.assertIn('Explore Agent', text)
-            self.assertIn('Control Center', text)
+            self.assertIn('Explore the live demo', text)
+            self.assertIn('Six simulated scenarios', text)
             self.assertIn('No live telemetry', text)
-            self.assertIn('↗', text)
-            # Small status accents cannot regress into the previous full mint slab.
-            for rect in svg.findall('s:rect', ns):
-                if rect.attrib.get('fill') == '#63eacb':
-                    self.assertLess(float(rect.attrib['width']) * float(rect.attrib['height']), 100)
+            self.assertIn('Open demo', text)
+            self.assertTrue(any(
+                p.attrib.get('stroke') == '#04130d' and p.attrib.get('fill') == 'none'
+                for p in svg.findall('s:path', ns)
+            ), 'icon arrow remains a static SVG path')
             for node in svg.findall('.//s:text', ns):
-                if 'Explore' in (node.text or '') or 'Control Center' in (node.text or ''):
-                    self.assertIn('system-ui', node.attrib.get('font-family', svg.find('s:g', ns).attrib.get('font-family', '') if svg.find('s:g', ns) is not None else ''))
-                    self.assertLessEqual(int(node.attrib.get('font-weight', '400')), 500)
+                if 'Open demo' in (node.text or ''):
+                    self.assertIn('system-ui', node.attrib.get('font-family', ''))
+                    self.assertEqual(node.attrib.get('font-weight'), '600')
 
     def test_reviewed_screenshot_contract(self):
         total = 0
