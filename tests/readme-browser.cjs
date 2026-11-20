@@ -49,8 +49,21 @@ module.exports=async function(browser,out){
   const clippedText=await svgPage.locator('svg').evaluate(root=>{const {width,height}=root.viewBox.baseVal;return [...root.querySelectorAll('text')].filter(t=>{const b=t.getBBox();return b.x<0||b.y<0||b.x+b.width>width||b.y+b.height>height;}).map(t=>t.textContent);});
   assert.deepEqual(clippedText,[],'CTA typography not clipped in Chrome');await svgPage.close();
   await banner.locator('xpath=ancestor::a').focus();assert(await banner.locator('xpath=ancestor::a').evaluate(n=>document.activeElement===n),'CTA keyboard focus');
-  await page.keyboard.press('Tab');assert(await secondary.evaluate(n=>document.activeElement===n),'CTA to secondary navigation via Tab');
-  await page.keyboard.press('Shift+Tab');assert(await banner.locator('xpath=ancestor::a').evaluate(n=>document.activeElement===n),'return to CTA via keyboard');
+  // GitHub may insert additional focusable UI between authored links.
+  // Assert the secondary navigation is keyboard-reachable within a bound,
+  // then that reverse navigation can return to the CTA without a focus trap.
+  let reachedSecondary=false;
+  for(let step=0;step<8;step++){
+    await page.keyboard.press('Tab');
+    if(await secondary.evaluate(n=>document.activeElement===n)){reachedSecondary=true;break;}
+  }
+  assert(reachedSecondary,'CTA to secondary navigation reachable within eight Tab presses');
+  let returnedToCta=false;
+  for(let step=0;step<8;step++){
+    await page.keyboard.press('Shift+Tab');
+    if(await banner.locator('xpath=ancestor::a').evaluate(n=>document.activeElement===n)){returnedToCta=true;break;}
+  }
+  assert(returnedToCta,'reverse keyboard navigation returns to CTA within eight Shift+Tab presses');
   await gallery.scrollIntoViewIfNeeded();
   const tileTargets=await gallery.evaluate(i=>{const r=i.getBoundingClientRect();const spots=innerWidth<600?[[.25,.28],[.75,.28],[.25,.80]]:[[.16,.45],[.5,.45],[.84,.45]];return spots.map(([x,y])=>document.elementFromPoint(r.x+r.width*x,r.y+r.height*y)?.closest('a')?.getAttribute('href'));});
   assert(tileTargets.every(h=>h===demoUrl),'all three screenshot tiles click through');
