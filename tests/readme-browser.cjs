@@ -23,7 +23,7 @@ module.exports=async function(browser,out){
   const links=await article.locator('a').evaluateAll(nodes=>nodes.map(n=>({href:n.getAttribute('href'),label:n.textContent,anchor:!n.getAttribute('href').startsWith('#')||!!document.getElementById('user-content-'+n.getAttribute('href').slice(1))||!!document.getElementById(n.getAttribute('href').slice(1))})));
   assert(links.every(x=>x.anchor),'internal anchors');
   const demoUrl='https://albertoreyescastro.github.io/agent-control-center/';
-  const banner=article.locator('img[alt^="LIVE DEMO"]');
+  const banner=article.locator('img[alt^="Live demo — Explore the interactive Agent Control Center"]');
   assert.equal(await banner.locator('xpath=ancestor::a').getAttribute('href'),demoUrl);
   const gallery=article.locator('img[alt^="Three clickable views"]');
   assert((await gallery.evaluate(i=>i.currentSrc)).endsWith(`/docs/readme/preview-gallery${width<600?'-narrow':''}.jpg`));
@@ -32,7 +32,8 @@ module.exports=async function(browser,out){
   assert(Math.abs(dimensions.width/dimensions.height-dimensions.w/dimensions.h)<0.01,'gallery aspect ratio');
   assert.equal(await gallery.locator('xpath=ancestor::a').getAttribute('href'),demoUrl);
   for(const caption of ['Interactive scenario lab ↗','Adaptive orchestration graph ↗','Fail-closed publication boundary ↗'])assert.equal(await article.getByRole('link',{name:caption,exact:true}).getAttribute('href'),demoUrl);
-  const secondary=article.getByRole('link',{name:'ARCHITECTURE ↓',exact:true});
+  const secondary=article.locator('a[href="#architecture"]').first();
+  assert.equal((await secondary.innerText()).trim(),'Architecture','current accessible secondary link');
   assert(!(await secondary.evaluate(n=>!!n.closest('strong'))),'secondary navigation is quiet');
   const prominence=await banner.evaluate(i=>({width:i.getBoundingClientRect().width,y:i.getBoundingClientRect().top}));
   const navPosition=await secondary.boundingBox();assert(prominence.width>width*0.65);assert(prominence.y<navPosition.y);
@@ -40,10 +41,10 @@ module.exports=async function(browser,out){
   const heroBox=await hero.boundingBox(),ctaBox=await banner.boundingBox();
   assert(Math.abs(heroBox.x-ctaBox.x)<1&&Math.abs(heroBox.width-ctaBox.width)<1,'hero/CTA alignment');
   assert(ctaBox.height<heroBox.height*0.6,'hero retains visual dominance');
-  assert(Math.abs(ctaBox.width/ctaBox.height-(width<600?480/184:960/136))<0.01,'CTA aspect ratio');
+  assert(Math.abs(ctaBox.width/ctaBox.height-(width<600?480/228:960/104))<0.01,'CTA aspect ratio');
   const svgPage=await context.newPage();
   const svg=fs.readFileSync(path.join(__dirname,`../docs/readme/live-demo${width<600?'-narrow':''}.svg`),'utf8');
-  assert(!svg.includes('\uFE0F'),'plain text arrow');
+  assert(!svg.includes('\uFE0F'),'vector CTA has no emoji presentation selector');
   await svgPage.setContent(svg);
   const clippedText=await svgPage.locator('svg').evaluate(root=>{const {width,height}=root.viewBox.baseVal;return [...root.querySelectorAll('text')].filter(t=>{const b=t.getBBox();return b.x<0||b.y<0||b.x+b.width>width||b.y+b.height>height;}).map(t=>t.textContent);});
   assert.deepEqual(clippedText,[],'CTA typography not clipped in Chrome');await svgPage.close();
@@ -60,12 +61,12 @@ module.exports=async function(browser,out){
    assert.equal(await summary.count(),1,`authored details summary: ${label}`);
    await summary.focus();await page.keyboard.press('Enter');assert(await summary.evaluate(n=>n.parentElement.open));await page.keyboard.press('Enter');assert(!(await summary.evaluate(n=>n.parentElement.open)));
   }
-  await article.getByRole('link',{name:'ARCHITECTURE ↓',exact:true}).click();
+  await article.locator('a[href="#architecture"]').first().click();
   assert((await page.url()).endsWith('#architecture'));
   await page.goto(url+'#engineering-the-space-between-agents',{waitUntil:'domcontentloaded'});
-  await article.getByRole('link',{name:'SCENARIOS ↓',exact:true}).click();
+  await article.locator('a[href="#scenarios"]').first().click();
   assert((await page.url()).endsWith('#scenarios'));
-  await article.getByRole('link',{name:'SECURITY / TRUST MODEL ↓',exact:true}).click();assert((await page.url()).endsWith('#security-and-trust-model'));
+  await article.locator('a[href="#security-and-trust-model"]').first().click();assert((await page.url()).endsWith('#security-and-trust-model'));
   const overflow=await page.evaluate(()=>Math.max(0,document.documentElement.scrollWidth-innerWidth));assert.equal(overflow,0,'page overflow');
   const tableOverflow=await article.locator('table').evaluateAll(nodes=>nodes.map(n=>Math.max(0,n.scrollWidth-n.clientWidth)));assert(tableOverflow.every(n=>n===0),'README table overflow');
   const theme=await page.evaluate(()=>({background:getComputedStyle(document.body).backgroundColor,color:getComputedStyle(document.querySelector('article')).color}));
@@ -76,7 +77,7 @@ module.exports=async function(browser,out){
   console.log(`README_IMAGE_${width}_${colorScheme}_BEGIN`);console.log(shot.toString('base64'));console.log(`README_IMAGE_${width}_${colorScheme}_END`);
   await banner.locator('xpath=ancestor::a').press('Enter');await page.waitForURL(demoUrl,{timeout:30000});
   assert.equal(await page.locator('#lab').count(),1,'keyboard CTA opens the canonical interactive demo');
-  results.push({width,colorScheme,theme,head,images:'PASS',video_player:'PASS',gallery_dimensions:dimensions,cta_prominence:'PASS',hero_alignment:'PASS',cta_text_clipping:'PASS',plain_arrow:'PASS',cta_keyboard_navigation:'PASS',tile_links:'PASS',alt_text:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',tables:'PASS',overflow});
+  results.push({width,colorScheme,theme,head,images:'PASS',video_player:'PASS',gallery_dimensions:dimensions,cta_prominence:'PASS',hero_alignment:'PASS',cta_text_clipping:'PASS',vector_arrow:'PASS',cta_keyboard_navigation:'PASS',tile_links:'PASS',alt_text:'PASS',responsive_sources:'PASS',anchors:'PASS',details_keyboard:'PASS',tables:'PASS',overflow});
   await context.close();
  }
  const demoContext=await browser.newContext();const demoPage=await demoContext.newPage();
