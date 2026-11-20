@@ -44,8 +44,13 @@ class ReadmePresentationTests(unittest.TestCase):
                 if url.startswith('#'):
                     self.assertIn(url[1:], anchors)
                 elif url.startswith('https://'):
-                    self.assertTrue(url.startswith(('https://github.com/albertoreyescastro/agent-control-center',
-                                                    'https://albertoreyescastro.github.io/agent-control-center/')))
+                    # The provider sunset notice links to one reviewed official source.
+                    # Keep all other external URLs restricted to the project itself.
+                    self.assertTrue(
+                        url == 'https://jules.google/docs/changelog'
+                        or url.startswith(('https://github.com/albertoreyescastro/agent-control-center',
+                                           'https://albertoreyescastro.github.io/agent-control-center/'))
+                    )
                 else:
                     p = (ROOT / url).resolve()
                     self.assertTrue(p.is_relative_to(ROOT))
