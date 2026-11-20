@@ -30,6 +30,8 @@ A public, interactive explanation of a **resilient multi-agent control plane**: 
 
 https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
+**Provider update (November 2026).** This walkthrough captures an earlier **PC-off cloud-execution path** using **Google Jules** as one worker, not the only cloud execution option. Google moved Jules to read-only on **11 November 2026** and plans to shut it down on **31 December 2026** ([official announcement](https://jules.google/docs/changelog)). The routing design is not dependent on Jules; it can accommodate other eligible cloud workers. The recording is retained as a historical architectural snapshot, **not evidence that Jules remains available today**.
+
 *Illustrative architecture workflow. No live telemetry, credentials, private task content or provider access is exposed. Named workers and models illustrate orchestration roles rather than a live operational inventory.*
 
 [Why I built it](#why-i-built-it) · [Engineering decisions](#engineering-decisions) · [Validation](#validation) · [Run locally](#run-locally) · [Source map](#source-map) · [Limitations](#limitations)
