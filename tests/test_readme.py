@@ -59,7 +59,7 @@ class ReadmePresentationTests(unittest.TestCase):
     def test_ctas_and_demo_disclosure(self):
         text = (ROOT / 'README.md').read_text()
         for label in ['Live Demo ↗', 'Architecture', 'Scenarios', 'Security&nbsp;/&nbsp;Trust&nbsp;Model',
-                      'SANITIZED / SIMULATED PORTFOLIO DEMO', 'No live telemetry']:
+                      'SANITISED / SIMULATED PORTFOLIO DEMO', 'No live telemetry']:
             self.assertIn(label, text)
         self.assertIn('alt="Live demo — Explore the interactive Agent Control Center:', text)
         self.assertIn('docs/readme/live-demo.svg', text)

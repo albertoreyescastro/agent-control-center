@@ -7,12 +7,12 @@ This repository is intentionally public. It contains the portfolio UI and a **pu
 - API keys, access tokens, cookies, secrets, credentials, webhook secrets or signed URLs.
 - Raw prompts, model responses, private task payloads or full operational logs.
 - Private repository names/paths, internal endpoints, account IDs, emails or billing identifiers.
-- Environment dumps, stack traces containing paths/secrets, or provider responses that have not been sanitized.
+- Environment dumps, stack traces containing paths/secrets, or provider responses that have not been sanitised.
 - Exact quota/balance data unless the provider exposes it safely and publication is explicitly intended.
 
 ## Publication model
 
-The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Public values use finite enums and generic numbered aliases. Task summaries, private events, exact token/quota data and unrestricted strings are excluded. Sanitisation happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
+The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitiser** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Public values use finite enums and generic numbered aliases. Task summaries, private events, exact token/quota data and unrestricted strings are excluded. Sanitisation happens before data enters this repository. The sanitiser must also reject credential-like patterns and URLs before publication.
 
 The UI must label simulated/demo data as such. Missing telemetry is rendered as unknown/not observable rather than inferred.
 

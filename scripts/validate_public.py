@@ -145,7 +145,7 @@ def check(root=ROOT):
         actual = {d.strip() for d in page.csp.split(';') if d.strip()}
         if not set(directives).issubset(actual) or any(x in page.csp for x in ['unsafe-inline','unsafe-eval','*']):
             raise ValueError('CSP directive')
-        for marker in ['SANITIZED DEMO', 'DEMO TOPOLOGY', 'SIMULATED STREAM']:
+        for marker in ['SANITISED DEMO', 'DEMO TOPOLOGY', 'SIMULATED STREAM']:
             if marker not in html:
                 raise ValueError('demo label')
         js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js'])
