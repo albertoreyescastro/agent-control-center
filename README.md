@@ -1,7 +1,7 @@
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/hero-narrow.svg">
-  <img src="docs/readme/hero.svg" width="960" alt="Agent Control Center — Reliable agents. Deliberate control. A sanitized, simulated portfolio demo by Alberto Reyes Castro, with a conceptual control path: task, route, local or cloud execution, separate review, deterministic checks and a closed human gate.">
+  <img src="docs/readme/hero.svg" width="960" alt="Agent Control Center — Reliable agents. Deliberate control. A sanitised, simulated portfolio demo by Alberto Reyes Castro, with a conceptual control path: task, route, local or cloud execution, separate review, deterministic checks and a closed human gate.">
 </picture>
 </a>
 
@@ -20,7 +20,7 @@
 
 A public, interactive explanation of a **resilient multi-agent control plane**: capability-aware routing across local and cloud execution, independent verification, bounded recovery and human-controlled promotion.
 
-**SANITIZED / SIMULATED PORTFOLIO DEMO.** Real architectural concepts; authored demo activity. No live telemetry, provider calls or operational access.
+**SANITISED / SIMULATED PORTFOLIO DEMO.** Real architectural concepts; authored demo activity. No live telemetry, provider calls or operational access.
 
 <!-- ORCHESTRATION_WORKFLOW_VIDEO -->
 
@@ -116,10 +116,10 @@ The control plane separates availability, ownership, evidence and authority. A r
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/trust-boundary-narrow.svg">
-  <img src="docs/readme/trust-boundary.svg" width="960" alt="Conceptual one-way publication: private harness, read-only adapter, fail-closed sanitizer, finite public-state contract, public dashboard. No reverse control path; today the browser loads bundled demo fixtures only.">
+  <img src="docs/readme/trust-boundary.svg" width="960" alt="Conceptual one-way publication: private harness, read-only adapter, fail-closed sanitiser, finite public-state contract, public dashboard. No reverse control path; today the browser loads bundled demo fixtures only.">
 </picture>
 
-**Private harness → read-only adapter → sanitizer / allow-list → public-state contract → public dashboard.** Read-only extraction and sanitisation happen upstream, outside this public browser. No live adapter is connected today.
+**Private harness → read-only adapter → sanitiser / allow-list → public-state contract → public dashboard.** Read-only extraction and sanitisation happen upstream, outside this public browser. No live adapter is connected today.
 
 - The [public contract](public-state.schema.json) admits finite aliases, enums and bounded aggregates. Unknown fields and unrestricted operational text fail closed.
 - The browser uses bundled demo fixtures, text-only DOM rendering and a strict CSP including `connect-src 'none'`. It never connects to the private harness.
@@ -175,7 +175,7 @@ Open the loopback address on port 8000. JavaScript enables the local simulation;
 | :-- | :-- |
 | [index.html](index.html) · [styles.css](assets/styles.css) | Semantic static UI, responsive layout and motion styling. |
 | [app.js](assets/app.js) · [simulation.js](assets/simulation.js) | Inspection/playback and finite scenario state transitions. |
-| [demo-state.js](assets/demo-state.js) · [public-state.schema.json](public-state.schema.json) | Bundled sanitized fixture and closed public contract. |
+| [demo-state.js](assets/demo-state.js) · [public-state.schema.json](public-state.schema.json) | Bundled sanitised fixture and closed public contract. |
 | [scripts/](scripts) | Contract validation and public inventory/leakage checks. |
 | [tests/](tests) | Python regressions, Node simulation/DOM checks and Chrome QA. |
 | [docs/readme/](docs/readme) | First-party static README visuals; no scripts or remote assets. |
@@ -187,7 +187,7 @@ Open the loopback address on port 8000. JavaScript enables the local simulation;
 
 This is an architecture and reliability demo, not an operational console. It exposes no real providers, worker inventory, prompts, responses, private tasks, measured quota or control-plane endpoints. Play, step and reset change authored client-side state only.
 
-The public schema supports a future upstream sanitized snapshot, but no live feed is connected. Provider-side included-only eligibility and spend controls require verification outside this dashboard. The demo cannot establish actual billing state or production failover reliability.
+The public schema supports a future upstream sanitised snapshot, but no live feed is connected. Provider-side included-only eligibility and spend controls require verification outside this dashboard. The demo cannot establish actual billing state or production failover reliability.
 
 Recorded browser QA covers Chrome. Firefox, Safari and a complete screen-reader/accessibility conformance audit remain unperformed. This README uses static SVGs because GitHub does not support SVG animation; the live experience provides the richer interaction.
 
