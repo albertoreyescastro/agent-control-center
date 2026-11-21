@@ -12,7 +12,7 @@ This repository is intentionally public. It contains the portfolio UI and a **pu
 
 ## Publication model
 
-The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Public values use finite enums and generic numbered aliases. Task summaries, private events, exact token/quota data and unrestricted strings are excluded. Sanitization happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
+The browser must never read the private harness directly. Any future live integration must be **push-only from a sanitizer** into an allow-listed public snapshot matching `public-state.schema.json`. Unknown fields fail closed. Public values use finite enums and generic numbered aliases. Task summaries, private events, exact token/quota data and unrestricted strings are excluded. Sanitisation happens before data enters this repository. The sanitizer must also reject credential-like patterns and URLs before publication.
 
 The UI must label simulated/demo data as such. Missing telemetry is rendered as unknown/not observable rather than inferred.
 
