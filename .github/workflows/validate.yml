@@ -34,7 +34,7 @@ jobs:
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/public-qa/node_modules/playwright-core"
           export QA_OUTPUT="$RUNNER_TEMP/public-browser-evidence"
           node tests/browser-qa.cjs
-      - name: Preserve sanitized QA screenshots
+      - name: Preserve sanitised QA screenshots
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # reviewed v4.6.2
         with:
