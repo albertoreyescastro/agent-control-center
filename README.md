@@ -119,7 +119,7 @@ The control plane separates availability, ownership, evidence and authority. A r
   <img src="docs/readme/trust-boundary.svg" width="960" alt="Conceptual one-way publication: private harness, read-only adapter, fail-closed sanitizer, finite public-state contract, public dashboard. No reverse control path; today the browser loads bundled demo fixtures only.">
 </picture>
 
-**Private harness → read-only adapter → sanitizer / allow-list → public-state contract → public dashboard.** Read-only extraction and sanitization happen upstream, outside this public browser. No live adapter is connected today.
+**Private harness → read-only adapter → sanitizer / allow-list → public-state contract → public dashboard.** Read-only extraction and sanitisation happen upstream, outside this public browser. No live adapter is connected today.
 
 - The [public contract](public-state.schema.json) admits finite aliases, enums and bounded aggregates. Unknown fields and unrestricted operational text fail closed.
 - The browser uses bundled demo fixtures, text-only DOM rendering and a strict CSP including `connect-src 'none'`. It never connects to the private harness.
