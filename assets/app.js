@@ -25,6 +25,8 @@
     timer,
     epoch = 0,
     mapStamp = '',
+    beatStamp = '',
+    overview = false,
     guardUntil = 0;
   function stop() {
     playing = false;
@@ -66,6 +68,7 @@
     shown = 0;
     selection = 'operator';
     mapStamp = '';
+    overview = false;
     guardUntil = 0;
     $('thread').replaceChildren();
     $('message').value = '';
@@ -271,7 +274,12 @@
     );
   }
   function draw(animate) {
+    $('mapField').dataset.mode = overview ? 'overview' : 'follow';
+    $('followMap').setAttribute('aria-pressed', String(!overview));
+    $('overviewMap').setAttribute('aria-pressed', String(overview));
     window.MissionMap.draw({
+      overview,
+      mini: $('miniMap'),
       surface: $('map'),
       s,
       playing,
@@ -282,6 +290,7 @@
       onLink: (a, b) => {
         stop();
         controls();
+        $('nodeDetails').open = true;
         const seen = s.log
           .slice()
           .reverse()
@@ -295,6 +304,7 @@
       },
       onPick: (key) => {
         stop();
+        $('nodeDetails').open = true;
         selection = key;
         controls();
         draw(false);
@@ -397,6 +407,43 @@
       (s.owner
         ? ' Owner: ' + s.owner + ' · last heartbeat ' + s.beat + ' · lease to ' + s.lease + '.'
         : '');
+    $('sceneTitle').textContent = $('activeTitle').textContent;
+    $('sceneDetail').textContent = last?.detail || 'Send a message to start the workflow.';
+    $('scenePlay').textContent = $('play').textContent;
+    $('scenePlay').disabled = $('play').disabled;
+    $('sceneStep').disabled = $('step').disabled;
+    const monitor = $('workerMonitor');
+    const stale = s.lost && !!s.previous && !s.owner;
+    const live = !!s.owner && !s.lost;
+    monitor.dataset.health = live ? 'healthy' : s.owner ? 'lost' : stale ? 'stale' : 'idle';
+    monitor.dataset.pulsing = String(live && playing && !sim.waiting.has(s.phase) && !document.hidden);
+    const sample = live ? [s.run, s.task, s.attempt, s.beat].join('/') : '';
+    if (sample && sample !== beatStamp && !motion.matches && !document.hidden) {
+      monitor.querySelector('.trace-wave').animate?.(
+        [
+          { strokeDasharray: '120', strokeDashoffset: 120 },
+          { strokeDasharray: '120', strokeDashoffset: 0 },
+        ],
+        { duration: 1100, easing: 'ease-out' },
+      );
+    }
+    beatStamp = sample;
+    $('heartState').textContent = live
+      ? 'Heartbeat · ' + (s.owner === 'local' ? 'Local executor' : 'Cloud executor')
+      : s.owner
+        ? 'Heartbeat lost · ' + s.owner
+        : stale
+          ? 'Lease expired · attempt fenced'
+          : s.attempt
+            ? 'Heartbeat · lease released'
+            : 'Heartbeat · standby';
+    $('heartDetail').textContent = s.owner
+      ? 'Attempt ' + s.attempt + ' · last beat T' + s.beat + ' · lease until T' + s.lease
+      : stale
+        ? 'Attempt ' + s.previous.attempt + ' · waiting for a new claim'
+        : s.attempt
+          ? 'No current lease'
+          : 'Waiting for a worker lease';
     $('events').replaceChildren(
       ...s.log
         .slice()
@@ -441,7 +488,8 @@
     const stamp = s.run + '/' + s.log.length,
       changed = stamp !== mapStamp;
     mapStamp = stamp;
-    if (changed && !motion.matches && s.log.length) guardUntil = performance.now() + 430;
+    if (changed && !motion.matches && s.log.length)
+      guardUntil = performance.now() + window.MissionMap.duration;
     draw(changed);
   }
   try {
@@ -450,6 +498,36 @@
     $('scenarioStatus').textContent = 'Demo payload rejected. No worker connection.';
     return;
   }
+  function setView(wide) {
+    overview = wide;
+    draw(false);
+  }
+  $('followMap').addEventListener('click', () => setView(false));
+  $('overviewMap').addEventListener('click', () => setView(true));
+  $('map').addEventListener('focusin', (e) => {
+    if (overview || !e.target.getBoundingClientRect) return;
+    const a = e.target.getBoundingClientRect(),
+      v = $('map').getBoundingClientRect();
+    if (a.right < v.left || a.left > v.right || a.bottom < v.top || a.top > v.bottom) setView(true);
+  });
+  if (document.fullscreenEnabled && $('mapField').requestFullscreen) {
+    $('expandMap').hidden = false;
+    $('expandMap').addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await $('mapField').requestFullscreen();
+      } catch {
+        setView(true);
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const name = document.fullscreenElement ? 'Exit expanded map' : 'Expand map';
+      $('expandMap').setAttribute('aria-label', name);
+      $('expandMap').title = name;
+      draw(false);
+    });
+  }
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => draw(false)).observe($('map'));
   $('newMessage').addEventListener('click', scrollLatest);
   $('send').addEventListener('click', send);
   $('message').addEventListener('keydown', (e) => {
@@ -460,7 +538,8 @@
   });
   $('step').addEventListener('click', () => {
     stop();
-    const remaining = guardUntil - performance.now(),
+    const paused = $('map').animationsPaused?.();
+    const remaining = (paused ? 0 : guardUntil) - performance.now(),
       run = s.run,
       at = s.log.length,
       ticket = epoch;
@@ -472,12 +551,19 @@
     } else dispatch({ type: 'tick', at });
   });
   $('play').addEventListener('click', () => {
-    if (playing) stop();
-    else playing = true;
+    if (playing) {
+      stop();
+      $('map').pauseAnimations?.();
+    } else {
+      playing = true;
+      $('map').unpauseAnimations?.();
+    }
     controls();
     draw(false);
     schedule();
   });
+  $('scenePlay').addEventListener('click', () => $('play').click());
+  $('sceneStep').addEventListener('click', () => $('step').click());
   $('resetDemo').addEventListener('click', () => {
     reset();
     $('message').focus();
@@ -497,7 +583,7 @@
   ])
     $('scenarios').append(button(label, () => presets(id, variant)));
   function layout() {
-    $('map-details').open = !narrow.matches;
+    if (!narrow.matches) $('map-details').open = true;
     draw(false);
   }
   $('disrupt').addEventListener('toggle', () => {

@@ -24,10 +24,17 @@
 </section>
 <section class="map-card card" aria-labelledby="map-heading">
 <header class="pane-head"><div><p class="minor">WORKFLOW</p><h2 id="map-heading">Mission map</h2></div><span class="map-status" id="runId">Standby</span></header>
-<div class="active-card" id="active" role="status" aria-live="polite"><i aria-hidden="true"></i><div><b id="activeTitle">Awaiting a task</b><p id="scenarioStatus">Send a message to start the workflow.</p></div></div>
 <details id="map-details" open><summary>Full workflow map</summary>
-<div class="map-field"><svg id="map" aria-label="Interactive mission map" role="group"></svg></div>
-<div id="inspector" class="node-inspector" aria-live="polite"></div></details>
+<div class="map-field" id="mapField">
+<div class="map-tools" role="group" aria-label="Map view"><button id="followMap" aria-pressed="true">Follow flow</button><button id="overviewMap" aria-pressed="false">Overview</button><button id="expandMap" aria-label="Expand map" title="Expand map" hidden>⛶</button></div>
+<svg id="map" aria-label="Interactive mission map" role="group"></svg><svg id="miniMap" class="mini-map" aria-hidden="true"></svg>
+<div class="cinema-caption"><div><b id="sceneTitle"></b><p id="sceneDetail"></p></div><div class="cinema-controls"><button id="scenePlay">Play</button><button id="sceneStep">Step →</button></div></div>
+</div>
+<details class="map-inspection" id="nodeDetails"><summary>Inspect selection</summary><div id="inspector" class="node-inspector" aria-live="polite"></div></details></details>
+<div class="active-card" id="active" role="status" aria-live="polite"><i aria-hidden="true"></i><div><b id="activeTitle">Awaiting a task</b><p id="scenarioStatus">Send a message to start the workflow.</p></div></div>
+<div class="worker-monitor" id="workerMonitor" data-health="idle">
+<svg viewBox="0 0 86 28" aria-hidden="true" class="heart-trace"><path class="trace-base" d="M1 15H85"/><path class="trace-wave" d="M1 15h21q2 0 3-3l2-3 3 11 5-18 5 24 4-11h6q2-5 5 0h29"/></svg>
+<div class="monitor-reading"><b id="heartState">Heartbeat · standby</b><span id="heartDetail">Waiting for a worker lease</span></div></div>
 <div id="contextIncident"></div><div class="transport-row"><button id="play" disabled>Pause</button><button id="step" disabled>Step →</button><button id="resetDemo" disabled>↺ Reset</button><span id="clock">Logical clock · 00</span></div>
 </section></div>
 <div class="desk-tools"><span class="sim-note"><i></i> Interactive simulation · runs in your browser</span><span id="budget"></span></div>

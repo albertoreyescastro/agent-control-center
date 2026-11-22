@@ -38,6 +38,8 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 ## See it in action
 
+**Follow a handoff.** Choose **Try a task** to follow the light from the sending port to the receiving port. **Overview** shows the complete route. In **Explore six scenarios → Heartbeat lost**, select **Drop heartbeat** and step through lease expiry to see when the cloud executor can claim the task.
+
 **The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
 
 <a href="https://albertoreyescastro.github.io/agent-control-center/">

@@ -231,6 +231,67 @@ async function run() {
       await page.close();
       console.log('Browser PASS ' + width);
     }
+    const flight = await browser.newPage({
+      viewport: { width: 1366, height: 900 },
+      reducedMotion: 'no-preference',
+    });
+    await flight.goto(origin);
+    await flight.locator('#explore').click();
+    await flight.locator('[data-scenario=heartbeat]').click();
+    assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'healthy');
+    assert.equal(await flight.locator('[data-node=local] .inline-ecg.healthy').count(), 1);
+    await flight.waitForTimeout(250);
+    const movement = await flight.locator('#map').evaluate((map) => {
+      map.pauseAnimations();
+      const path = map.querySelector('.wire.active'),
+        packet = map.querySelector('.photon');
+      const animation = packet.querySelector('animateMotion');
+      const start = animation.getStartTime(),
+        duration = animation.getSimpleDuration();
+      const positions = [];
+      const errors = [];
+      for (const t of [0.1, 0.5, 0.9]) {
+        map.setCurrentTime(start + duration * t);
+        const local = new DOMPoint()
+          .matrixTransform(packet.getScreenCTM())
+          .matrixTransform(map.getScreenCTM().inverse());
+        const expected = path.getPointAtLength(path.getTotalLength() * t);
+        errors.push(Math.hypot(local.x - expected.x, local.y - expected.y));
+        positions.push(local);
+      }
+      map.setCurrentTime(start + duration + 0.3);
+      const arrival = Number(getComputedStyle(map.querySelector('.arrival')).opacity);
+      map.unpauseAnimations();
+      return {
+        errors,
+        distance: Math.hypot(positions[2].x - positions[0].x, positions[2].y - positions[0].y),
+        arrival,
+      };
+    });
+    assert(Math.max(...movement.errors) < 2, JSON.stringify(movement));
+    assert(movement.distance > 45 && movement.arrival > 0.4, JSON.stringify(movement));
+    await flight.locator('#overviewMap').click();
+    assert.equal(await flight.locator('#map').evaluate((m) => m.viewBox.baseVal.width), 1770);
+    await flight.locator('#followMap').click();
+    assert(await flight.locator('#map').evaluate((m) => m.viewBox.baseVal.width < 1200));
+    await flight.locator('#contextIncident button').click();
+    assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'lost');
+    assert.equal(await flight.locator('[data-node=local] .inline-ecg.lost').count(), 1);
+    assert.equal(await flight.locator('.owner-pulse').count(), 0);
+    await flight.emulateMedia({ reducedMotion: 'reduce' });
+    await flight.waitForSelector('.photon', { state: 'detached' });
+    for (
+      let i = 0;
+      i < 4 && (await flight.locator('#workerMonitor').getAttribute('data-health')) !== 'stale';
+      i++
+    )
+      await flight.locator('#step').click();
+    assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'stale');
+    await flight.locator('#step').click();
+    assert.match(await flight.locator('#heartState').innerText(), /Cloud executor/);
+    assert.match(await flight.locator('#heartDetail').innerText(), /Attempt 2/);
+    console.log('Browser PASS travelling packet, arrival, follow camera and heartbeat recovery');
+    await flight.close();
     const bad = await browser.newPage();
     await bad.route('**/assets/demo-state.js', (r) =>
       r.fulfill({
