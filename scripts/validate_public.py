@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Scan every approved public file, including this detector's source."""
 import re
+import base64
 import hashlib
 import sys
 from html.parser import HTMLParser
@@ -41,6 +42,9 @@ PRIVATE = ['-work' + '-event-test-' + '20260926', 'agent-control-center' + '-pri
            'gen-lang' + '-client-', 'C:' + '\\Users\\']
 
 
+TAB_ICON = "data:image/svg+xml;base64," + base64.b64encode((ROOT / "assets/favicon.svg").read_bytes()).decode("ascii")
+
+
 class Page(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -60,7 +64,8 @@ class Page(HTMLParser):
             if tag in {'iframe', 'object', 'base', 'form'}:
                 self.bad = True
             target = a.get('src', a.get('href', ''))
-            if target and not target.startswith('assets/'):
+            bundled_icon = tag == 'link' and a.get('rel') == 'icon' and target == TAB_ICON
+            if target and not target.startswith('assets/') and not bundled_icon:
                 self.bad = True
 
 
