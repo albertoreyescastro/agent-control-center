@@ -145,7 +145,13 @@
     return facts[key] + (evidence ? ' ' + evidence.detail : '');
   }
   const compactNodes = new Set(['reconciler', 'registry', 'verdict', 'merged', 'pinned', 'feedback']);
-  const colours = { normal: '#a8d9ff', human: '#ffcc71', danger: '#ff8494', late: '#9b9aaa' };
+  const colours = {
+    pass: '#89eac4',
+    normal: '#a8d9ff',
+    human: '#ffcc71',
+    danger: '#ff8494',
+    late: '#9b9aaa',
+  };
   const flightMs = 1900;
   let scene = null;
   const point = (x, y) => ({ x, y });
@@ -159,7 +165,7 @@
       result[key] = {
         x: small ? mx : x,
         y: small ? my : y,
-        rx: round ? 18 : council ? (small ? 81 : 108) : cardRadius,
+        rx: round ? 18 : council ? (small ? 97 : 126) : cardRadius,
         ry: round ? 18 : 24,
       };
     }
@@ -235,6 +241,8 @@
     const n = g[a],
       m = g[b],
       id = a + '-' + b;
+    if (id === 'validator-council') return curve(n, m, small ? 'bottom' : 'right', 'left');
+    if (id === 'council-verdict') return curve(n, m, 'right', small ? 'top' : 'left');
     if (id === 'gate-operator') return outer(n, m, small ? 'left' : 'top', small ? 9 : 15);
     if (id === 'verdict-router') return outer(n, m, small ? 'right' : 'top', small ? 345 : 55);
     if (id === 'reconciler-ledger' && !small) return outer(n, m, 'left', 207);
@@ -362,12 +370,16 @@
     if (off) group.classList.add('off');
     if (key === 'operator' || key === 'gate') group.classList.add('human');
     if (compactNodes.has(key)) {
+      const status =
+        key === 'verdict' && s.reviews && c
+          ? (s.reviews.pass ? 'PASS' : 'FAIL') + ' · v' + c.version
+          : sub;
       group.append(
         svg('circle', { cx: n.x, cy: n.y, r: n.rx + 4, class: 'rim' }),
         svg('circle', { cx: n.x, cy: n.y, r: n.rx, class: 'shell' }),
         icon(key, n.x - 9, n.y - 9, 18),
         svg('text', { x: n.x, y: n.y + 33, 'text-anchor': 'middle', class: 'node-name' }, label),
-        svg('text', { x: n.x, y: n.y + 45, 'text-anchor': 'middle', class: 'node-sub' }, sub),
+        svg('text', { x: n.x, y: n.y + 45, 'text-anchor': 'middle', class: 'node-sub' }, status),
       );
     } else if (key === 'council') {
       const { members: selected, required } = root.Simulation.reviewers(s);
@@ -375,7 +387,7 @@
         (w) => required === 3 || selected.some((r) => r.family === w.family),
       );
       const gap = small ? 38 : 45,
-        cardWidth = n.rx * 2 - (small ? 26 : 46);
+        cardWidth = small ? 122 : 153;
       group.append(
         svg(
           'text',
@@ -398,39 +410,43 @@
         group.append(
           svg('path', {
             class: 'family-wire',
+            'data-leg': 'in',
+            'data-family': model.family,
             d:
               'M' +
-              (n.x - n.rx) +
-              ' ' +
-              n.y +
+              xy(port(n, 'left')) +
               ' C' +
-              left +
+              (left - 20) +
               ' ' +
               n.y +
               ' ' +
-              (left - 8) +
+              (left - 18) +
               ' ' +
               y +
               ' ' +
               left +
               ' ' +
-              y +
-              ' M' +
+              y,
+          }),
+          svg('path', {
+            class: 'family-wire',
+            'data-leg': 'out',
+            'data-family': model.family,
+            d:
+              'M' +
               right +
               ' ' +
               y +
               ' C' +
-              (right + 8) +
+              (right + 18) +
               ' ' +
               y +
               ' ' +
-              right +
+              (right + 20) +
               ' ' +
               n.y +
               ' ' +
-              (n.x + n.rx) +
-              ' ' +
-              n.y,
+              xy(port(n, 'right')),
           }),
           svg('rect', { x: left, y: y - 16, width: cardWidth, height: 32, rx: 7, class: 'shell' }),
           icon('council', left + 8, y - 8, 15),
@@ -513,8 +529,13 @@
       }
     });
   }
-  function light(path, tone, reduced, animate) {
-    const layer = svg('g', { class: 'delivery ' + tone, 'aria-hidden': 'true' });
+  function light(path, tone, reduced, animate, duration = flightMs, delay = 0) {
+    const layer = svg('g', {
+      class: 'delivery ' + tone,
+      'data-duration': duration,
+      'data-delay': delay,
+      'aria-hidden': 'true',
+    });
     const origin = path.getPointAtLength(0),
       end = path.getPointAtLength(path.getTotalLength());
     [origin, end].forEach((p) =>
@@ -534,7 +555,7 @@
       attributeName: 'stroke-dashoffset',
       from: 8,
       to: -92,
-      dur: flightMs + 'ms',
+      dur: duration + 'ms',
       begin: 'indefinite',
       fill: 'freeze',
     });
@@ -547,7 +568,7 @@
     );
     const travel = svg('animateMotion', {
       path: path.getAttribute('d'),
-      dur: flightMs + 'ms',
+      dur: duration + 'ms',
       calcMode: 'paced',
       repeatCount: 1,
       fill: 'freeze',
@@ -559,7 +580,7 @@
         attributeName: 'opacity',
         values: '1;1;0',
         keyTimes: '0;.84;1',
-        dur: flightMs + 450 + 'ms',
+        dur: duration + 450 + 'ms',
         begin: 'indefinite',
         fill: 'freeze',
       }),
@@ -666,7 +687,8 @@
       const routes = [...links];
       if (event && !routes.some(([a, b]) => a === event.from && b === event.to))
         routes.push([event.from, event.to]);
-      let active = null;
+      let active = null,
+        sceneTone = 'normal';
       for (const [a, b] of routes) {
         const selectedEdge = event?.from === a && event?.to === b;
         const tone = selectedEdge
@@ -695,7 +717,7 @@
         wires.append(hit);
         if (selectedEdge) {
           active = wire;
-          pending = light(wire, tone, motion, animate);
+          sceneTone = tone;
         }
       }
       for (const key of Object.keys(g)) {
@@ -703,7 +725,33 @@
         activate(group, () => onPick(key));
         stations.append(group);
       }
-      if (pending) surface.append(pending);
+      if (active) {
+        pending = svg('g', { class: 'handoff-lights' });
+        const entering = event.from === 'validator' && event.to === 'council';
+        const leaving =
+          event.from === 'council' &&
+          event.to === 'verdict' &&
+          s.reviews &&
+          s.reviews.sha === event.sha;
+        if (entering || leaving) {
+          const branchMs = 850,
+            trunkMs = flightMs - branchMs;
+          const families = entering ? root.Simulation.reviewers(s).families : s.reviews?.families || [];
+          const leg = entering ? 'in' : 'out';
+          const trunkTone = leaving && s.reviews.pass ? 'pass' : sceneTone;
+          pending.append(light(active, trunkTone, motion, animate, trunkMs, entering ? 0 : branchMs));
+          for (const path of stations.querySelectorAll('[data-leg="' + leg + '"]')) {
+            if (!families.includes(path.dataset.family)) continue;
+            const vote = leaving ? s.reviews.votes.find((v) => v.family === path.dataset.family) : null;
+            const tone = vote?.verdict === 'FAIL' ? 'danger' : vote ? 'pass' : 'normal';
+            const strand = light(path, tone, motion, animate, branchMs, entering ? trunkMs : 0);
+            strand.setAttribute('data-reviewer', path.dataset.family);
+            pending.append(strand);
+            path.classList.add('carrying', tone);
+          }
+        } else pending.append(light(active, sceneTone, motion, animate));
+        surface.append(pending);
+      }
       scene = { stamp, surface, active, box: null };
       if (focus?.node || focus?.link)
         surface
@@ -748,10 +796,12 @@
     if (pending) {
       const lead = 160;
       for (const item of pending.querySelectorAll('animate,animateMotion')) {
+        const segment = item.closest('.delivery');
         item.beginElementAt(
           (lead +
+            Number(segment.dataset.delay) +
             (item.parentNode.classList.contains('arrival') || item.classList.contains('after-flight')
-              ? flightMs
+              ? Number(segment.dataset.duration)
               : 0)) /
             1000,
         );

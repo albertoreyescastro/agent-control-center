@@ -108,7 +108,7 @@ assert.match(d.get('thread').textContent, /Test empty CSV/);
 d.get('scenarios')
   .children.find((n) => n.dataset.scenario === 'verification')
   .click();
-assert.match(d.get('thread').textContent, /Approval requested/);
+assert.match(d.get('thread').textContent, /Decision ready|Merge ready/);
 assert.equal(d.timers.size, 0);
 const broken = setup(true);
 assert.match(broken.get('scenarioStatus').textContent, /rejected/);

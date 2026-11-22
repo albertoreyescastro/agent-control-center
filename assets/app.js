@@ -80,7 +80,10 @@
   }
   function scrollLatest() {
     const t = $('thread');
-    t.scrollTop = t.scrollHeight;
+    const last = t.lastElementChild;
+    if (last?.dataset.question && last.dataset.question === s.question) {
+      t.scrollTop += last.getBoundingClientRect().top - t.getBoundingClientRect().top - 8;
+    } else t.scrollTop = t.scrollHeight;
     $('newMessage').hidden = true;
   }
   function viewEvidence(card) {
@@ -98,27 +101,86 @@
       ])
         n.append(button(label, () => reply(card.id, key), 'reply'));
     } else {
-      const dl = el('dl');
-      for (const [k, v] of [
-        ['Action', card.action],
-        ['Scope', card.scope],
-        ['Candidate', 'v' + card.version + ' · ' + card.sha.slice(0, 12)],
-        ['On approval', card.outcome],
-        ['Evidence', card.checks + ' checks passed · ' + card.reviews],
-      ]) {
-        dl.append(el('dt', k), el('dd', v));
-      }
-      n.append(
-        dl,
-        button('View evidence', () => viewEvidence(card)),
+      const field = (label, value) => {
+        const section = el('div', undefined, 'packet-field');
+        section.append(el('b', label));
+        if (Array.isArray(value)) {
+          const list = el('ul');
+          for (const line of value) list.append(el('li', line));
+          section.append(list);
+        } else section.append(el('p', value));
+        n.append(section);
+      };
+      const changes =
+        card.kind === 'csv'
+          ? [
+              'Keep names containing commas in a single CSV cell.',
+              card.scope + '.',
+              ...(card.version > 1
+                ? ['Escape literal quotation marks and cover them with a regression test.']
+                : []),
+            ]
+          : [
+              'Add a regression test for empty exports.',
+              'Verify the header survives an export with zero rows.',
+            ];
+      if (card.kind === 'empty' && card.files.includes('src/export.js'))
+        changes.push('Update CSV quoting and test literal quotation marks.');
+      field('What you are approving', changes);
+      field('Files in this revision', card.files);
+      field('Decision', card.action + '. ' + card.outcome);
+      field(
+        'Impact and risk',
+        card.files.includes('src/export.js')
+          ? 'Changes exported customer rows. Downstream CSV readers may depend on the previous quoting behaviour.'
+          : 'Test-only change. The fixture covers an empty export and the selected row scope.',
       );
-      for (const [key, label] of [
-        ['approve', card.phase === 'confirm' ? 'Confirm approval' : 'Approve'],
-        ['reject', 'Reject'],
-      ])
-        n.append(
-          button(label, () => reply(card.id, key), key === 'approve' ? 'reply primary' : 'reply'),
-        );
+      field(
+        'Independent review · ' +
+          card.votes.filter((v) => v.verdict === 'PASS').length +
+          '/' +
+          card.votes.length +
+          ' passed',
+        card.votes.map((v) => v.name + ' · ' + v.family + ' · ' + v.verdict),
+      );
+      field(
+        'Checks on this revision',
+        card.checksRun.map((t) => (t.pass ? 'PASS' : 'FAIL') + ' · ' + t.name),
+      );
+      field(
+        'Residual risk',
+        'These checks ran on the demo fixtures. Production data and integrations were outside their scope.',
+      );
+      field('Exact revision · v' + card.version, card.sha);
+      field(
+        'System recommendation',
+        'Approve the displayed action for this revision. Billing OFF · Overage OFF.',
+      );
+      const actions = el('div', undefined, 'packet-actions');
+      function add(label, icon, fn, cls) {
+        const b = button(label, fn, cls);
+        const glyph = el('span', icon, 'button-icon');
+        glyph.setAttribute('aria-hidden', 'true');
+        b.append(glyph);
+        actions.append(b);
+        return b;
+      }
+      add(
+        card.phase === 'confirm' ? 'Confirm approval' : 'Approve',
+        '✅',
+        () => reply(card.id, 'approve'),
+        'reply primary',
+      );
+      add('Reject', '✖', () => reply(card.id, 'reject'), 'reply');
+      add('View details', '🔎', () => viewEvidence(card));
+      const hold = add(
+        'Pause project',
+        '⏸',
+        () => dispatch({ type: s.held ? 'resume' : 'hold', id: card.id }),
+        'hold-project',
+      );
+      hold.dataset.hold = card.id;
+      n.append(actions);
     }
     n.dataset.question = card.id;
   }
@@ -138,13 +200,72 @@
         undefined,
         'bubble ' + (m.who === 'you' ? 'you' : 'desk') + (m.card ? ' decision' : ''),
       );
-      n.append(el('small', m.who === 'you' ? 'YOU' : 'CONTROL DESK'), el('span', m.text));
+      n.append(el('small', m.who === 'you' ? 'YOU' : 'CONTROL DESK'));
+      if (m.who === 'you') n.append(el('span', m.text));
+      else {
+        const packet = m.card && m.card.phase !== 'scope';
+        const heading = packet
+          ? (m.card.phase === 'confirm'
+              ? 'Final confirmation'
+              : m.card.action === 'Authorise manual merge'
+                ? 'Merge ready'
+                : 'Decision ready') +
+            ' — PR #' +
+            m.card.pr
+          : m.card
+            ? 'Scope decision'
+            : m.title;
+        const symbols = {
+          'Heartbeat lost': '💔',
+          'Expired attempt fenced': '🔒',
+          'Council convened': '🗳️',
+          'Review passed': '✅',
+          'Mission blocked': '🛑',
+          'Council requested a correction': '🛠️',
+          'Bounded repair queued': '🔁',
+          'Read-only checks passed': '✅',
+          'Mission rejected': '⛔',
+          'Late result discarded': '🛡️',
+        };
+        const icon = packet
+          ? '🟢'
+          : m.card
+            ? '❓'
+            : m.to === 'cloud'
+              ? '☁️'
+              : symbols[m.title] ||
+                (m.title?.startsWith('Council passed')
+                  ? '✅'
+                  : m.tone === 'danger'
+                    ? '⚠️'
+                    : m.tone === 'human'
+                      ? '📩'
+                      : '🔹');
+        if (heading) {
+          const header = el('strong', undefined, 'telegram-heading');
+          const glyph = el('span', icon);
+          glyph.setAttribute('aria-hidden', 'true');
+          header.append(glyph, document.createTextNode(heading));
+          n.append(header);
+        }
+        const detail = packet
+          ? m.card.title
+          : m.title && m.text.startsWith(m.title + '. ')
+            ? m.text.slice(m.title.length + 2)
+            : m.text;
+        n.append(el('span', detail));
+      }
       if (m.card) cardControls(n, m.card);
       thread.append(n);
     }
     shown = s.messages.length;
     for (const n of thread.querySelectorAll('[data-question]'))
-      for (const b of n.querySelectorAll('.reply')) b.disabled = n.dataset.question !== s.question;
+      for (const b of n.querySelectorAll('.reply'))
+        b.disabled = s.held || n.dataset.question !== s.question;
+    for (const b of thread.querySelectorAll('[data-hold]')) {
+      b.disabled = b.dataset.hold !== s.question;
+      b.textContent = s.held && !b.disabled ? '▶ Resume project' : '⏸ Pause project';
+    }
     if (added) {
       if (near) scrollLatest();
       else $('newMessage').hidden = false;
@@ -174,7 +295,7 @@
         ),
       );
     }
-    $('message').disabled = !(s.phase === 'idle' || s.question);
+    $('message').disabled = s.held || !(s.phase === 'idle' || s.question);
     $('send').disabled = $('message').disabled;
     $('message').placeholder = s.question
       ? 'Reply to this question…'
@@ -474,7 +595,7 @@
       context = $('contextIncident');
     incidents.replaceChildren();
     context.replaceChildren();
-    const allowed = Object.entries(sim.disruptions).filter(([, v]) => v[1](s));
+    const allowed = Object.entries(s.held ? {} : sim.disruptions).filter(([, v]) => v[1](s));
     if (!allowed.length)
       incidents.append(el('p', 'Disruptions become available at the relevant workflow step.'));
     function trigger(key) {

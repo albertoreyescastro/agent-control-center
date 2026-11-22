@@ -1072,3 +1072,119 @@ main {
     font-size: 8.5px;
   }
 }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  gap: 10px;
+}
+.spend-state {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid #34564f;
+  background: #101f20;
+  border-radius: 6px;
+  color: #c9ddd6;
+  font: 500 10px/1.35 var(--mono);
+}
+.spend-state span {
+  white-space: nowrap;
+}
+.spend-state b {
+  color: #93e4c5;
+}
+.cinema-spend {
+  display: none;
+}
+#mapField:fullscreen .cinema-spend {
+  display: block;
+  position: absolute;
+  top: 60px;
+  left: 14px;
+}
+.engineer-portrait {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid #4f636a;
+  border-radius: 14px;
+}
+.telegram-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  line-height: 1.35;
+  margin-bottom: 5px;
+}
+.bubble.decision {
+  background: #172423;
+  color: #e4efeb;
+  border-color: #446b5d;
+}
+.packet-field {
+  margin-top: 11px;
+}
+.packet-field b {
+  color: #a7e4ca;
+  font-size: 12px;
+}
+.packet-field p,
+.packet-field ul {
+  margin: 2px 0;
+  font-size: 13px;
+}
+.packet-field ul {
+  padding-left: 17px;
+}
+.packet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 12px;
+}
+.packet-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 0;
+  text-align: center;
+}
+.packet-actions .button-icon {
+  order: -1;
+}
+.channel:has(.packet-actions) .thread {
+  max-height: 560px;
+}
+.family-wire.carrying {
+  stroke: #a9d8fb;
+  stroke-width: 1.8;
+}
+.family-wire.carrying.danger {
+  stroke: #ef93a2;
+}
+.family-wire.carrying.pass {
+  stroke: #8cd8b9;
+}
+.delivery.pass {
+  color: #8ce5c3;
+}
+@media (max-width: 760px) {
+  .engineer-portrait {
+    max-width: min(66vw, 240px);
+  }
+  .spend-state {
+    display: grid;
+    gap: 0;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+  .channel:has(.packet-actions) .thread {
+    height: clamp(290px, 54svh, 460px);
+  }
+}

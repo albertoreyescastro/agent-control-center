@@ -283,4 +283,25 @@ test('Walkthrough names, independent sensitive votes and named local fallback', 
   assert.equal(h.s.executorFamily, 'OpenAI');
   assert.deepEqual(h.replay(), h.s);
 });
+test('Paid dispatch and stale approval commands cannot acquire authority', () => {
+  const d = desk('empty', { ending: 'manual' });
+  d.incident('paid');
+  assert.match(d.s.messages.at(-1).text, /Paid dispatch denied/);
+  assert.equal(d.s.attempt, 0);
+  assert.equal(d.s.owner, null);
+  d.until('gate');
+  const key = d.s.question;
+  d.event({ type: 'hold', id: key });
+  d.reply('approve');
+  assert.equal(d.s.stage, 1);
+  assert(d.s.held);
+  d.event({ type: 'resume', id: key + 'stale' });
+  assert(d.s.held);
+  d.event({ type: 'resume', id: key });
+  d.reply('approve');
+  assert.equal(d.s.phase, 'confirm');
+  d.event({ type: 'hold', id: key });
+  assert(!d.s.held);
+  assert.deepEqual(d.replay(), d.s);
+});
 console.log(cases + ' scenario contract groups passed.');

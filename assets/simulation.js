@@ -52,6 +52,7 @@
       fixes: 0,
       stage: 0,
       question: null,
+      held: false,
       archived: false,
       feedback: 'unasked',
       offline: 0,
@@ -86,13 +87,16 @@
     });
   }
   function say(s, text, who = 'desk', card = null) {
-    s.messages.push({ text, who, card });
+    const event = who === 'desk' ? s.log.at(-1) : null;
+    const message = { text, who, card };
+    if (event) Object.assign(message, { title: event.title, tone: event.tone, to: event.to });
+    s.messages.push(message);
   }
-  function block(s, from, reason) {
+  function block(s, from, reason, to = 'ledger') {
     s.phase = 'blocked';
     s.owner = null;
     s.question = null;
-    record(s, from, 'ledger', 'Mission blocked', reason, 'danger');
+    record(s, from, to, 'Mission blocked', reason, 'danger');
     say(s, reason);
   }
   function ask(s, phase) {
@@ -111,6 +115,13 @@
       id: s.question,
       phase,
       action,
+      pr: c.pr,
+      title: s.title,
+      kind: c.kind,
+      sensitive: s.policy.sensitive,
+      files: c.files.slice(),
+      checksRun: s.checks.items.map((t) => ({ name: t.name, pass: t.pass })),
+      votes: s.reviews.votes.map((v) => ({ name: v.name, family: v.family, verdict: v.verdict })),
       scope: c.scope,
       outcome:
         s.policy.sensitive && s.stage === 1
@@ -149,6 +160,7 @@
   }
   function phaseStatus(s) {
     const c = current(s);
+    if (s.held) return 'Project paused · decision saved';
     switch (s.phase) {
       case 'select':
         return s.lost && s.previous ? 'Lease expired · reassigning' : 'Checking eligible workers';
@@ -185,22 +197,33 @@
         }[s.phase];
     }
   }
-  function fit(s, worker) {
-    if (worker === 'local' && !s.pc) return 'PC offline';
+  function spendFence(s, worker, tariff) {
+    if (tariff !== 'included')
+      return 'Paid dispatch denied. Billing OFF · Overage OFF. Only included capacity can be claimed.';
     if (!s.pools[worker]) return 'Included pool fenced';
+    return null;
+  }
+  function fit(s, worker, tariff = 'included') {
+    if (worker === 'local' && !s.pc) return 'PC offline';
+    const denied = spendFence(s, worker, tariff);
+    if (denied) return denied;
     if (s.owner) return 'Active lease exists';
     if (worker === 'cloud' && !s.fenced) return 'Local work has no fence';
     if (worker === 'cloud' && !s.transport) return 'Transport evidence missing';
     if (worker === 'cloud' && !s.projectAccess) return 'Project access unverified';
     return 'Code capability, fresh fixture and included pool verified';
   }
-  function route(s) {
-    let worker = 'local';
-    if (fit(s, worker) !== 'Code capability, fresh fixture and included pool verified') {
+  function route(s, tariff = 'included') {
+    let worker = tariff === 'included' ? 'local' : 'cloud';
+    if (worker === 'local' && !fit(s, worker, tariff).startsWith('Code capability')) {
       if (!s.owner) s.fenced = true;
       worker = 'cloud';
     }
-    const reason = fit(s, worker);
+    const reason = fit(s, worker, tariff);
+    if (tariff !== 'included' && !reason.startsWith('Code capability')) {
+      record(s, 'registry', 'router', 'Paid fallback denied', reason + ' No new attempt was created.', 'danger');
+      return;
+    }
     if (!reason.startsWith('Code capability'))
       return block(
         s,
@@ -337,7 +360,8 @@
         ', observed ' +
         JSON.stringify(item.actual) +
         '.';
-      if (s.fixes >= s.policy.maxFixes) return block(s, 'council', 'Repair budget exhausted. ' + reason);
+      if (s.fixes >= s.policy.maxFixes)
+        return block(s, 'council', 'Repair budget exhausted. ' + reason, 'verdict');
       s.phase = 'repair';
       record(s, 'council', 'verdict', 'Council requested a correction', reason, 'danger');
       say(
@@ -655,6 +679,7 @@
       (s) => ['intake', 'route', 'select'].includes(s.phase) && s.pc && s.attempt === 0 && !s.codexABusy,
     ],
     restore: ['Bring PC back online', (s) => !!s.policy && !s.pc && !terminal.has(s.phase)],
+    paid: ['Try a paid fallback', (s) => ['intake', 'route', 'select'].includes(s.phase)],
     quota: [
       'Exhaust a quota pool',
       (s) => ['intake', 'route', 'select'].includes(s.phase) && (s.pools.local || s.pools.cloud),
@@ -697,6 +722,8 @@
         detail =
           'Local health restored. The next claim may use Codex; an existing lease keeps its owner.';
         break;
+      case 'paid':
+        return route(s, 'paid');
       case 'quota': {
         const pool = s.pools.local ? 'local' : 'cloud';
         s.pools[pool] = false;
@@ -745,8 +772,8 @@
         break;
       case 'finding':
         s.forceFinding = true;
-        from = 'council';
-        to = 'verdict';
+        from = 'operator';
+        to = 'council';
         detail = 'Council will exercise an additional edge case.';
         break;
       case 'check':
@@ -781,6 +808,32 @@
   function reduce(previous, e) {
     if (e.run !== previous.run) return previous;
     const s = clone(previous);
+    if (['hold', 'resume'].includes(e.type)) {
+      if (
+        !e.id ||
+        e.id !== s.question ||
+        !['gate', 'confirm'].includes(s.phase) ||
+        s.held === (e.type === 'hold')
+      )
+        return previous;
+      s.held = e.type === 'hold';
+      record(
+        s,
+        'operator',
+        'gate',
+        s.held ? 'Project paused' : 'Project resumed',
+        'Decision held for the same exact revision.',
+        'human',
+      );
+      say(
+        s,
+        s.held
+          ? 'Project paused. This exact revision is saved. Resume to approve or reject it.'
+          : 'Project resumed. The same revision is ready for your decision.',
+      );
+      return s;
+    }
+    if (s.held) return previous;
     if (e.type === 'tick' && e.at === s.log.length) tick(s);
     else if (e.type === 'incident') interrupt(s, e.key);
     else if (e.type === 'answer') answer(s, e);

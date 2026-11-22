@@ -112,7 +112,7 @@ async function run() {
       assert.match(await text('scenarioStatus'), /Include archived/);
       await advance('Decision returned');
       assert.match(await text('thread'), /v2/);
-      await press(btn('View evidence'));
+      await press(btn('View details'));
       assert.match(await text('proof'), /Literal quote is escaped/);
       assert.match(await text('proof'), /All rows, including archived/);
       await press(btn('Back to conversation'));
@@ -337,6 +337,92 @@ async function run() {
     );
     await recovery.close();
     console.log('Browser PASS automatic heartbeat recovery and phase-accurate Telegram council');
+    const council = await browser.newPage({
+      viewport: { width: 1366, height: 900 },
+      reducedMotion: 'no-preference',
+    });
+    await council.goto(origin);
+    await council.clock.install();
+    for (const [preset, fail] of [
+      ['retry', true],
+      ['outage', false],
+    ]) {
+      await council.locator('#explore').click();
+      await council.locator('[data-scenario="' + preset + '"]').click();
+      for (const leg of ['in', 'out']) {
+        if (leg === 'out') await council.clock.runFor(fail ? 3450 : 4350);
+        const metrics = await council.locator('#map').evaluate((map, leg) => {
+          const trunk = map.querySelector('.delivery:not([data-reviewer])');
+          const branches = [...map.querySelectorAll('.delivery[data-reviewer]')];
+          const wire = map.querySelector('.wire.active');
+          const join = wire.getPointAtLength(leg === 'in' ? wire.getTotalLength() : 0);
+          let gaps = [],
+            positions = [];
+          map.pauseAnimations();
+          const branch = branches[0],
+            anim = branch.querySelector('animateMotion');
+          map.setCurrentTime(anim.getStartTime() + anim.getSimpleDuration() / 2);
+          for (const b of branches) {
+            const path = [...map.querySelectorAll('[data-leg="' + leg + '"]')].find(
+              (p) => p.dataset.family === b.dataset.reviewer,
+            );
+            const socket = path.getPointAtLength(leg === 'in' ? 0 : path.getTotalLength());
+            gaps.push(Math.hypot(socket.x - join.x, socket.y - join.y));
+            const photon = b.querySelector('.photon');
+            const point = new DOMPoint()
+              .matrixTransform(photon.getScreenCTM())
+              .matrixTransform(map.getScreenCTM().inverse());
+            const middle = path.getPointAtLength(path.getTotalLength() / 2);
+            if (
+              Math.hypot(point.x - middle.x, point.y - middle.y) > 2 ||
+              Number(getComputedStyle(photon).opacity) < 0.8
+            )
+              throw Error('Reviewer pulse missed its curve');
+            positions.push(point.y);
+          }
+          map.unpauseAnimations();
+          return {
+            gaps,
+            positions,
+            red: branches.filter((b) => b.classList.contains('danger')).length,
+            start: Number(trunk.dataset.delay),
+            branchStart: Number(branch.dataset.delay),
+          };
+        }, leg);
+        assert.equal(metrics.gaps.length, 3);
+        assert(
+          Math.max(...metrics.gaps) < 0.1 &&
+            Math.max(...metrics.positions) - Math.min(...metrics.positions) > 25,
+        );
+        assert.equal(metrics.red, leg === 'out' && fail ? 1 : 0);
+        assert.equal(metrics.start < metrics.branchStart, leg === 'in');
+      }
+      await council.clock.runFor(fail ? 3450 : 4350);
+      assert.match(
+        await council.locator('#activeTitle').innerText(),
+        fail ? /repair queued/i : /Human gate opened/,
+      );
+      if (fail) assert.equal(await council.locator('.packet-actions').count(), 0);
+      else {
+        await council.clock.runFor(4350);
+        const packet = council.locator('.bubble.decision').last();
+        assert.match(await packet.innerText(), /Independent review · 3\/3 passed/);
+        assert.match(await packet.innerText(), /Billing OFF · Overage OFF/);
+        await packet.getByRole('button', { name: /Pause project/ }).click();
+        assert(await packet.getByRole('button', { name: 'Approve', exact: true }).isDisabled());
+        await packet.getByRole('button', { name: /Resume project/ }).click();
+        assert(await packet.getByRole('button', { name: 'Approve', exact: true }).isEnabled());
+      }
+    }
+    assert(
+      await council
+        .locator('.engineer-portrait')
+        .evaluate((img) => img.complete && img.naturalWidth === 400),
+    );
+    await council.close();
+    console.log(
+      'Browser PASS council split, individual votes, merge, both verdicts and approval packet',
+    );
     const bad = await browser.newPage();
     await bad.route('**/assets/demo-state.js', (r) =>
       r.fulfill({

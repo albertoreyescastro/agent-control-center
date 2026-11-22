@@ -40,6 +40,8 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 **Follow a handoff.** Choose **Try a task** to follow the light from the sending port to the receiving port. **Overview** shows the complete route. In **Explore six scenarios → Heartbeat lost**, watch the signal stop and the original lease expire before Jules claims the simulated fallback. You can also inject **Drop heartbeat** into a running task.
 
+**Watch the council vote.** Choose **Bounded recovery** to see the signal split between three reviewers and their votes rejoin at the verdict. A blocking finding sends the candidate back for correction. After all three reviewers accept the revised candidate, Telegram shows the changes, checks and exact revision for human approval.
+
 **The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
 
 <a href="https://albertoreyescastro.github.io/agent-control-center/">

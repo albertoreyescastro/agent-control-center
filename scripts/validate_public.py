@@ -24,7 +24,9 @@ SCREENSHOTS = {
     'docs/readme/preview-gallery.jpg': (1440, 860, 231037, '1646d1926c39a5226208d45a8a4ad45880ada872a870c08be681882fb7beddb5'),
     'docs/readme/preview-gallery-narrow.jpg': (800, 1190, 194989, '7a7008a9a529e137b4457d72848477fc4ed5bfe1c1ef3f6049eb0507ddbc5d19'),
 }
-APPROVED |= set(SCREENSHOTS) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
+PORTRAIT = {'assets/alberto-reyes.jpg': (400, 400, 25164, '67e69dfdb9bc5f1d4bc329e0af9338bd788706d6aa78b9e6e224df9001c22b12')}
+REVIEWED_IMAGES = {**SCREENSHOTS, **PORTRAIT}
+APPROVED |= set(REVIEWED_IMAGES) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
 APPROVED |= {'assets/fixtures.js', 'assets/desk.css', 'assets/map.js'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
@@ -104,9 +106,9 @@ def check(root=ROOT):
         if rel not in APPROVED | OPTIONAL:
             errors.append('unapproved file')
             continue
-        if rel in SCREENSHOTS:
+        if rel in REVIEWED_IMAGES:
             data = p.read_bytes()
-            _, _, size, digest = SCREENSHOTS[rel]
+            _, _, size, digest = REVIEWED_IMAGES[rel]
             if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
                 errors.append('unreviewed screenshot bytes')
             continue
