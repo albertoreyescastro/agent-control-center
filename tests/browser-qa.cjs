@@ -205,7 +205,7 @@ async function run() {
       assert.equal(await page.locator('animateMotion').count(), 0);
       assert.equal(await page.locator('.station').count(), 20);
       const additionalRequests = requests.length - initial;
-      assert.equal(additionalRequests, 0, 'No network after load');
+      assert.deepEqual(requests.slice(initial), [], 'No network after load');
       assert.deepEqual(errors, []);
       await page.reload({ waitUntil: 'networkidle' });
       assert.equal(await loc('thread').locator('.bubble').count(), 1);
