@@ -38,7 +38,7 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 ## See it in action
 
-**Follow a handoff.** Choose **Try a task** to follow the light from the sending port to the receiving port. **Overview** shows the complete route. In **Explore six scenarios → Heartbeat lost**, select **Drop heartbeat** and step through lease expiry to see when the cloud executor can claim the task.
+**Follow a handoff.** Choose **Try a task** to follow the light from the sending port to the receiving port. **Overview** shows the complete route. In **Explore six scenarios → Heartbeat lost**, watch the signal stop and the original lease expire before Jules claims the simulated fallback. You can also inject **Drop heartbeat** into a running task.
 
 **The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
 
@@ -82,7 +82,7 @@ The browser illustrates this flow with finite fixtures. It does not implement a 
 
 [Explore six scenarios ↗](https://albertoreyescastro.github.io/agent-control-center/#lab) opens the same desk. The six presets bring you directly to normal routing, reviewer outage, quota fence, heartbeat loss, bounded recovery and the human merge gate. Choose **Try a disruption** to change a run. **Step**, **Pause** and **Reset** control the logical clock. The additional repair-limit and two-phase examples exercise exhaustion and continuation. A manual merge authorisation ends with the merge still in human hands.
 
-All worker, family, project and revision identities in the desk are fictional. Browser memory holds the current session. Reloading clears the conversation. With reduced motion enabled, use **Step**. The historical walkthrough above remains available.
+The desk replays the public film’s worker and model names with fictional tasks, revisions and events. The sensitive council requires Llama 3.1 8B, GPT-OSS 20B and GLM 4.7 Flash from three distinct families. The Jules lane is a historical simulation. Browser memory holds the current session. Reloading clears the conversation. With reduced motion enabled, use **Step**. The historical walkthrough above remains available.
 
 ## Engineering decisions
 
@@ -99,7 +99,7 @@ All worker, family, project and revision identities in the desk are fictional. B
 <details>
 <summary><strong>Observability philosophy: show decisions, preserve uncertainty</strong></summary>
 
-The UI presents generic worker aliases, finite health states and a coherent decision timeline. It deliberately avoids displaying private task content. Missing or unobservable information stays unknown instead of becoming a green status by inference.
+The map uses the walkthrough’s public names. The bundled state contract accepts finite worker aliases and health states. It deliberately avoids displaying private task content. Missing or unobservable information stays unknown instead of becoming a green status by inference.
 
 The control plane separates availability, ownership, evidence and authority. A recovered route still needs review; a passing check still needs human approval. The topology is an explanation of those boundaries, not a live operational map.
 

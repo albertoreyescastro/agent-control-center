@@ -148,7 +148,7 @@ test('Unavailable review is distinct from a finding; family counts depend on pol
     d.incident('reviewer');
     d.tick();
     assert.equal(d.s.reviews.families.length, sensitive ? 3 : 2);
-    assert(!d.s.reviews.families.includes('Slate'));
+    assert(!d.s.reviews.families.includes(d.s.executorFamily));
     const b = desk('empty', { sensitive });
     b.until('council');
     for (let i = 0; i < 3; i++) b.incident('reviewer');
@@ -163,6 +163,11 @@ test('Repair changes the immutable diff, reruns exact checks, keeps old evidence
   d.until('repair');
   const v1 = sim.current(d.s);
   assert(!v1.finding.pass);
+  assert.deepEqual(
+    v1.review.votes.map((v) => v.verdict),
+    ['PASS', 'FAIL', 'PASS'],
+  );
+  assert(v1.review.votes.every((v) => v.sha === v1.sha));
   d.tick();
   assert.equal(d.s.checks, null);
   assert.equal(d.s.reviews, null);
@@ -176,6 +181,8 @@ test('Repair changes the immutable diff, reruns exact checks, keeps old evidence
   assert.equal(d.s.reviews.sha, v2.sha);
   d.incident('old');
   assert.equal(d.s.phase, 'gate');
+  d.reply('approve');
+  assert.equal(d.s.phase, 'confirm');
   d.reply('approve');
   assert.equal(d.s.phase, 'manual');
 });
@@ -217,7 +224,7 @@ test('Approval stage, rejection, replays, old mission and exact revision', () =>
   assert.equal(b.s.phase, 'rejected');
 });
 test('Exactly one phase B inside the same mission reaches terminal completion', () => {
-  const d = desk('csv', { ending: 'next' });
+  const d = desk('csv', { ending: 'next', sensitive: false });
   d.until('gate');
   const q = d.s.question;
   d.reply('approve');
@@ -239,5 +246,41 @@ test('Stale clock tokens and immutable previous states', () => {
   d.event({ type: 'tick', at: before.log.length });
   assert.deepEqual(d.s, fresh);
   assert.equal(before.phase, 'intake');
+});
+test('Walkthrough names, independent sensitive votes and named local fallback', () => {
+  const d = desk('empty');
+  d.incident('busy');
+  d.until('work');
+  assert.equal(d.s.log.at(-1).to, 'localB');
+  assert.match(d.s.messages.at(-1).text, /Codex B owns attempt 1/);
+  d.until('council');
+  assert.deepEqual(
+    sim.reviewers(d.s).members.map((m) => m.name),
+    ['Llama 3.1 8B', 'GPT-OSS 20B', 'GLM 4.7 Flash'],
+  );
+  assert.match(d.s.messages.at(-1).text, /Council convened/);
+  d.tick();
+  assert.equal(new Set(d.s.reviews.families).size, 3);
+  const h = desk();
+  h.until('work');
+  h.incident('heartbeat');
+  for (const title of [
+    'Heartbeat lost',
+    'Awaiting lease expiry',
+    'Expired attempt fenced',
+    'Attempt 2 claimed',
+  ]) {
+    assert.equal(h.s.log.at(-1).title, title);
+    assert(h.s.messages.at(-1).text.includes(title));
+    h.tick();
+  }
+  assert.equal(h.s.executorFamily, 'Google');
+  h.incident('restore');
+  assert.equal(h.s.owner, 'cloud');
+  h.until('repair');
+  h.until('work');
+  assert.equal(h.s.owner, 'local');
+  assert.equal(h.s.executorFamily, 'OpenAI');
+  assert.deepEqual(h.replay(), h.s);
 });
 console.log(cases + ' scenario contract groups passed.');

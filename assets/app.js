@@ -43,7 +43,7 @@
       () => {
         if (ticket === epoch && run === s.run && playing) dispatch({ type: 'tick', at });
       },
-      s.kind === 'csv' ? 3750 : 4700,
+      s.kind === 'csv' ? 3450 : 4350,
     );
   }
   function apply(data) {
@@ -73,6 +73,7 @@
     $('thread').replaceChildren();
     $('message').value = '';
     $('newMessage').hidden = true;
+    $('nodeDetails').open = false;
     $('evidence').open = false;
     $('disrupt').open = false;
     render();
@@ -182,6 +183,7 @@
         : sim.terminal.has(s.phase)
           ? 'Mission closed'
           : 'Team is working…';
+    $('chatPhase').textContent = sim.phaseStatus(s);
     $('chat-hint').textContent = s.question
       ? 'Reply by button or text · no time limit'
       : s.phase === 'idle'
@@ -230,7 +232,7 @@
       type: 'choose',
       kind: variant === 'next' ? 'csv' : csv ? 'csv' : 'empty',
       options: {
-        sensitive: id === 'verification',
+        sensitive: true,
         ending:
           variant === 'next' ? 'next' : id === 'verification' ? 'manual' : csv ? 'manual' : 'complete',
       },
@@ -251,6 +253,7 @@
       verification: 'gate',
     }[id];
     until(target);
+    if (id === 'heartbeat') apply({ type: 'incident', key: 'heartbeat' });
     if (variant === 'limit') {
       apply({ type: 'tick', at: s.log.length });
       until('council');
@@ -259,7 +262,9 @@
     $('thread').replaceChildren();
     shown = 0;
     selection = s.log.at(-1).to;
+    playing = !motion.matches;
     render();
+    schedule();
     scrollLatest();
     $('lab').scrollIntoView({ block: 'start' });
     $('step').disabled
@@ -288,8 +293,6 @@
       selected: selection,
       animate,
       onLink: (a, b) => {
-        stop();
-        controls();
         $('nodeDetails').open = true;
         const seen = s.log
           .slice()
@@ -303,7 +306,6 @@
         );
       },
       onPick: (key) => {
-        stop();
         $('nodeDetails').open = true;
         selection = key;
         controls();
@@ -359,6 +361,8 @@
         detail.append(
           el('p', (c.review.pass ? 'PASS' : 'BLOCK') + ' · ' + c.review.families.join(' + ')),
         );
+      for (const vote of c.review?.votes || [])
+        detail.append(el('p', vote.verdict + ' · ' + vote.name + ' · ' + vote.check.name));
       if (c.finding)
         detail.append(
           el(
@@ -386,6 +390,13 @@
     $('step').disabled = sim.waiting.has(s.phase);
     $('resetDemo').disabled = s.phase === 'idle' && !s.ambiguous;
     $('clock').textContent = 'Logical clock · ' + String(s.clock).padStart(2, '0');
+    if (s.policy && !sim.waiting.has(s.phase)) {
+      $('chat-hint').textContent = playing
+        ? 'Updates and decisions arrive here.'
+        : motion.matches
+          ? 'Reduced motion · use Step to advance.'
+          : 'Paused · use Play or Step to continue.';
+    }
     const c = sim.current(s);
     $('budget').textContent = s.policy
       ? 'Task ' +
@@ -414,6 +425,7 @@
     $('sceneStep').disabled = $('step').disabled;
     const monitor = $('workerMonitor');
     const stale = s.lost && !!s.previous && !s.owner;
+    const awaitingClaim = stale && s.phase === 'select';
     const live = !!s.owner && !s.lost;
     monitor.dataset.health = live ? 'healthy' : s.owner ? 'lost' : stale ? 'stale' : 'idle';
     monitor.dataset.pulsing = String(live && playing && !sim.waiting.has(s.phase) && !document.hidden);
@@ -429,9 +441,9 @@
     }
     beatStamp = sample;
     $('heartState').textContent = live
-      ? 'Heartbeat · ' + (s.owner === 'local' ? 'Local executor' : 'Cloud executor')
+      ? 'Heartbeat · ' + sim.workerName(s, s.owner)
       : s.owner
-        ? 'Heartbeat lost · ' + s.owner
+        ? 'Heartbeat lost · ' + sim.workerName(s, s.owner)
         : stale
           ? 'Lease expired · attempt fenced'
           : s.attempt
@@ -440,10 +452,14 @@
     $('heartDetail').textContent = s.owner
       ? 'Attempt ' + s.attempt + ' · last beat T' + s.beat + ' · lease until T' + s.lease
       : stale
-        ? 'Attempt ' + s.previous.attempt + ' · waiting for a new claim'
+        ? 'Attempt ' +
+          s.previous.attempt +
+          (awaitingClaim ? ' · waiting for a new claim' : ' · recovery blocked')
         : s.attempt
           ? 'No current lease'
-          : 'Waiting for a worker lease';
+          : s.phase === 'blocked'
+            ? 'No eligible worker'
+            : 'Waiting for a worker lease';
     $('events').replaceChildren(
       ...s.log
         .slice()
@@ -462,7 +478,6 @@
     if (!allowed.length)
       incidents.append(el('p', 'Disruptions become available at the relevant workflow step.'));
     function trigger(key) {
-      stop();
       dispatch({ type: 'incident', key });
     }
     for (const [key, [label]] of allowed) incidents.append(button(label, () => trigger(key)));
@@ -586,23 +601,9 @@
     if (!narrow.matches) $('map-details').open = true;
     draw(false);
   }
-  $('disrupt').addEventListener('toggle', () => {
-    if ($('disrupt').open) {
-      stop();
-      controls();
-    }
-  });
-  $('evidence').addEventListener('toggle', () => {
-    if ($('evidence').open) {
-      stop();
-      controls();
-    }
-  });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      stop();
-      controls();
-    }
+    controls();
+    schedule();
   });
   motion.addEventListener('change', () => {
     stop();

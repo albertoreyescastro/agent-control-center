@@ -968,7 +968,7 @@ main {
   }
   .map-field[data-mode='overview'] #map {
     height: auto;
-    aspect-ratio: 354/1180;
+    aspect-ratio: 354/1440;
   }
   .mini-map {
     display: none;
@@ -1048,4 +1048,27 @@ main {
   display: flex;
   gap: 0.5rem;
   pointer-events: auto;
+}
+
+.channel-meta {
+  margin-left: auto;
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  max-width: 48%;
+  text-align: right;
+}
+#chatPhase {
+  font: 500 10px/1.25 var(--mono);
+  color: #c1d3ed;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .station .node-name {
+    font-size: 11.25px;
+  }
+  .station .node-sub {
+    font-size: 8.5px;
+  }
 }

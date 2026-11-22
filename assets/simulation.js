@@ -32,6 +32,8 @@
       clock: 0,
       policy: null,
       pc: true,
+      codexABusy: false,
+      executorFamily: null,
       pools: { local: true, cloud: true },
       transport: true,
       projectAccess: true,
@@ -63,10 +65,17 @@
     };
   }
   const current = (s) => s.revisions.filter((c) => c.task === s.task).at(-1);
+  const workerNames = { local: 'Codex A', localB: 'Codex B', cloud: 'Jules' };
+  function station(s, key) {
+    return key === 'local' && s.codexABusy ? 'localB' : key;
+  }
+  function workerName(s, key) {
+    return workerNames[station(s, key)];
+  }
   function record(s, from, to, title, detail, tone = 'normal') {
     s.log.push({
-      from,
-      to,
+      from: station(s, from),
+      to: station(s, to),
       title,
       detail,
       tone,
@@ -123,20 +132,58 @@
     s.title = title;
     s.phase = 'intake';
     s.policy = {
-      sensitive: !!options.sensitive,
+      sensitive: options.sensitive !== false,
       ending: options.ending || (kind === 'empty' ? 'complete' : 'manual'),
       maxAttempts: 2,
       maxFixes: 1,
       includedOnly: true,
     };
     record(s, 'operator', 'coordinator', 'Task registered', title + ' · policy fixed for this mission.');
-    say(s, 'Mission opened. The router is checking for an eligible worker.');
+    say(s, 'Mission opened. Cloudflare Workers is recording the task and its review policy.');
   }
   function recognised(text) {
     if (/\b(empty|blank|zero|no rows)\b/i.test(text) && /export|csv|test|row/i.test(text))
       return 'empty';
     if (/comma|surname|family name/i.test(text) && /name|csv|export|cell/i.test(text)) return 'csv';
     return null;
+  }
+  function phaseStatus(s) {
+    const c = current(s);
+    switch (s.phase) {
+      case 'select':
+        return s.lost && s.previous ? 'Lease expired · reassigning' : 'Checking eligible workers';
+      case 'work':
+        return s.lost
+          ? 'Heartbeat lost · awaiting lease expiry'
+          : workerName(s, s.owner) + ' · executing';
+      case 'produce':
+        return workerName(s, s.owner) + ' · preparing candidate';
+      case 'validate':
+        return 'Validating v' + c.version;
+      case 'review':
+        return 'Checks passed · scheduling review';
+      case 'council':
+        return 'Review council · v' + c.version;
+      case 'repair':
+        return 'Correction requested · v' + c.version;
+      case 'verdict':
+        return 'Review passed · v' + c.version;
+      default:
+        return {
+          idle: 'Awaiting a task',
+          intake: 'Recording mission',
+          route: 'Routing task',
+          feedback: 'Feedback triage',
+          scope: 'Waiting for your scope decision',
+          handoff: 'Preparing approval',
+          gate: 'Waiting for your approval',
+          confirm: 'Waiting for your confirmation',
+          manual: 'Authorised for manual merge',
+          complete: 'Mission completed',
+          rejected: 'Mission rejected',
+          blocked: 'Mission blocked',
+        }[s.phase];
+    }
   }
   function fit(s, worker) {
     if (worker === 'local' && !s.pc) return 'PC offline';
@@ -169,6 +216,7 @@
     s.attempt++;
     s.cycleAttempts++;
     s.owner = worker;
+    s.executorFamily = worker === 'cloud' ? 'Google' : 'OpenAI';
     s.lost = false;
     s.beat = s.clock;
     s.lease = s.clock + 2;
@@ -178,7 +226,11 @@
       'router',
       worker,
       'Attempt ' + s.attempt + ' claimed',
-      reason +
+      workerName(s, worker) +
+        ' owns attempt ' +
+        s.attempt +
+        '. ' +
+        reason +
         '. ' +
         (worker === 'cloud' ? 'Local work fenced before handoff.' : 'Local execution preferred.'),
     );
@@ -220,36 +272,37 @@
     }
     revise(s);
   }
-  const reviewRoster = [
-    { name: 'Forge', family: 'Slate' },
-    { name: 'Unlabelled', family: null },
-    ...['Iris', 'Birch', 'Reed', 'Fern'].map((family, index) => ({
-      name: family + ' reviewer',
-      family,
-      index,
-    })),
-    { name: 'Iris twin', family: 'Iris', index: 0 },
+  const councilModels = [
+    { name: 'Llama 3.1 8B', family: 'Meta Llama' },
+    { name: 'GPT-OSS 20B', family: 'Open-weight GPT' },
+    { name: 'GLM 4.7 Flash', family: 'GLM' },
   ];
   function reviewers(s) {
-    const required = s.policy?.sensitive ? 3 : 2;
+    const required = s.policy?.sensitive === false ? 2 : 3;
+    // A simulated reserve worker serves the same model; it cannot supply a fourth vote.
+    const roster = [...councilModels, { ...councilModels[0], reserve: true }];
     const families = [],
+      members = [],
       excluded = [];
-    for (const worker of reviewRoster) {
-      let why = '';
-      if (!worker.family) why = 'family unknown';
-      else if (worker.family === 'Slate') why = 'same family as executor';
-      else if (worker.index < s.offline) why = 'reviewer offline';
-      else if (families.includes(worker.family)) why = 'family already represented';
-      else if (families.length < required) families.push(worker.family);
-      if (why) excluded.push(worker.name + ' · ' + why);
+    for (const [index, worker] of roster.entries()) {
+      const name = worker.name + (worker.reserve ? ' (standby)' : '');
+      let reason;
+      if (index < s.offline) reason = 'reviewer offline';
+      else if (worker.family === s.executorFamily) reason = 'same family as executor';
+      else if (families.includes(worker.family)) reason = 'family already represented';
+      else if (families.length < required) {
+        families.push(worker.family);
+        members.push(worker);
+      }
+      if (reason) excluded.push(name + ' · ' + reason);
     }
-    return { required, families, excluded };
+    return { required, families, members, excluded };
   }
   function council(s) {
     const c = current(s);
     if (s.checks?.sha !== c.sha || !s.checks.pass)
       return block(s, 'validator', 'Exact-version validation evidence missing.');
-    const { required, families } = reviewers(s);
+    const { required, families, members } = reviewers(s);
     if (families.length < required)
       return block(
         s,
@@ -260,12 +313,20 @@
           required +
           ' eligible independent families remain.',
       );
-    const edge = project.probe(c, 'quote');
-    const item = edge.pass ? project.probe(c, 'multiline') : edge;
-    const finding = (s.kind === 'csv' && !edge.pass) || (s.forceFinding && !item.pass);
-    s.reviews = { sha: c.sha, families, pass: !finding };
+    const probes = [
+      s.forceFinding ? 'multiline' : 'scope',
+      s.kind === 'csv' ? 'quote' : 'empty',
+      'comma',
+    ];
+    const votes = members.map(({ name, family }, index) => {
+      const check = project.probe(c, probes[index]);
+      return { name, family, sha: c.sha, verdict: check.pass ? 'PASS' : 'FAIL', check };
+    });
+    const failed = votes.find((v) => v.verdict === 'FAIL');
+    s.reviews = { sha: c.sha, families, votes, pass: !failed };
     c.review = clone(s.reviews);
-    if (finding) {
+    if (failed) {
+      const item = failed.check;
       c.finding = item;
       s.forceFinding = false;
       const reason =
@@ -279,7 +340,15 @@
       if (s.fixes >= s.policy.maxFixes) return block(s, 'council', 'Repair budget exhausted. ' + reason);
       s.phase = 'repair';
       record(s, 'council', 'verdict', 'Council requested a correction', reason, 'danger');
-      say(s, 'Review found a failing case in v' + c.version + '. One bounded repair is available.');
+      say(
+        s,
+        failed.name +
+          ' found a failing case in v' +
+          c.version +
+          ': ' +
+          item.name +
+          '. One bounded repair is available.',
+      );
     } else {
       s.phase = 'verdict';
       record(
@@ -287,7 +356,12 @@
         'council',
         'verdict',
         'Council passed v' + c.version,
-        families.join(' + ') + ' settled on ' + c.sha.slice(0, 12) + '. Executor family Slate excluded.',
+        families.join(' + ') +
+          ' settled on ' +
+          c.sha.slice(0, 12) +
+          '. Executor family ' +
+          s.executorFamily +
+          ' excluded.',
       );
     }
   }
@@ -330,7 +404,7 @@
               'reconciler',
               'ledger',
               'Awaiting lease expiry',
-              'Heartbeat stopped. The existing attempt still owns the task.',
+              'Heartbeat stopped. The existing attempt still owns the task until tick ' + s.lease + '.',
             );
             break;
           }
@@ -358,7 +432,7 @@
           record(
             s,
             s.owner,
-            'ledger',
+            'feedback',
             'Routine feedback answered once',
             'Policy already covers running the regression checks. One answer recorded.',
           );
@@ -382,7 +456,7 @@
         if (s.kind === 'csv' && s.task === 1) {
           record(
             s,
-            'ledger',
+            'feedback',
             'operator',
             'Scope needs a decision',
             'Archived rows change the export contract.',
@@ -437,7 +511,15 @@
           'validator',
           'council',
           'Council convened',
-          (s.policy.sensitive ? 'Three' : 'Two') + ' distinct known families required.',
+          'Workers AI requires ' +
+            reviewers(s).required +
+            ' independent families for v' +
+            current(s).version +
+            '. Scheduled: ' +
+            reviewers(s)
+              .members.map((w) => w.name)
+              .join(', ') +
+            '.',
         );
         break;
       case 'council':
@@ -568,6 +650,11 @@
   }
   const disruptions = {
     pc: ['Turn PC off', (s) => ['intake', 'route', 'select'].includes(s.phase) && s.pc],
+    busy: [
+      'Make Codex A busy',
+      (s) => ['intake', 'route', 'select'].includes(s.phase) && s.pc && s.attempt === 0 && !s.codexABusy,
+    ],
+    restore: ['Bring PC back online', (s) => !!s.policy && !s.pc && !terminal.has(s.phase)],
     quota: [
       'Exhaust a quota pool',
       (s) => ['intake', 'route', 'select'].includes(s.phase) && (s.pools.local || s.pools.cloud),
@@ -601,6 +688,15 @@
         s.pc = false;
         detail = 'Local health is offline. The router will evaluate cloud evidence.';
         break;
+      case 'busy':
+        s.codexABusy = true;
+        detail = 'Codex A is busy. Codex B is next in the local ranking.';
+        break;
+      case 'restore':
+        s.pc = true;
+        detail =
+          'Local health restored. The next claim may use Codex; an existing lease keeps its owner.';
+        break;
       case 'quota': {
         const pool = s.pools.local ? 'local' : 'cloud';
         s.pools[pool] = false;
@@ -621,7 +717,8 @@
         to = 'ledger';
         tone = 'danger';
         detail =
-          'Signal stopped. Attempt ' +
+          workerName(s, s.owner) +
+          ' stopped sending heartbeats. Attempt ' +
           s.attempt +
           ' retains its lease until logical tick ' +
           s.lease +
@@ -643,8 +740,8 @@
         to = 'council';
         detail =
           'Reviewer offline. Eligible independent families remaining: ' +
-          ['Iris', 'Birch', 'Reed', 'Fern'].slice(s.offline).join(', ') +
-          '. Slate shares the executor family and cannot substitute.';
+          (reviewers(s).families.join(', ') || 'none') +
+          '.';
         break;
       case 'finding':
         s.forceFinding = true;
@@ -679,7 +776,7 @@
         detail = 'Session journal replayed. Phase, lease and outstanding question restored.';
         break;
     }
-    record(s, from, to, disruptions[key][0], detail, tone);
+    record(s, from, to, key === 'heartbeat' ? 'Heartbeat lost' : disruptions[key][0], detail, tone);
   }
   function reduce(previous, e) {
     if (e.run !== previous.run) return previous;
@@ -708,6 +805,13 @@
           'you',
         );
       start(s, e.kind, s.ambiguous || project.tasks[e.kind], e.options);
+    }
+    const entry = s.log.at(-1);
+    if (
+      s.log.length > previous.log.length &&
+      !s.messages.slice(previous.messages.length).some((m) => m.who === 'desk')
+    ) {
+      say(s, entry.title + '. ' + entry.detail);
     }
     return s;
   }
@@ -755,6 +859,10 @@
     tasks: project.tasks,
     current,
     reviewers,
+    councilModels,
+    station,
+    workerName,
+    phaseStatus,
     disruptions,
     waiting,
     terminal,

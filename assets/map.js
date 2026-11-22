@@ -4,20 +4,26 @@
   // World coordinates keep the execution lanes open and the return channels outside them.
   // Each node also has a portrait position so the overview can be read vertically.
   const nodes = {
-    operator: ['Operator', 'Telegram · human input', 96, 222, 94, 78],
-    coordinator: ['Control plane', 'Mission coordinator', 325, 156, 258, 163],
-    ledger: ['Durable state', 'Recorded task & lease', 305, 304, 92, 291],
-    router: ['Role-aware router', 'Policy & eligibility', 557, 222, 253, 395],
-    local: ['Local executor', 'Preferred execution', 802, 127, 93, 510],
-    cloud: ['Cloud executor', 'Fenced fallback', 802, 320, 255, 567],
-    candidate: ['Candidate PR', 'Immutable revision', 1044, 157, 92, 699],
-    validator: ['Validator', 'Read-only checks', 1064, 292, 254, 781],
-    council: ['Review council', 'Independent families', 1280, 222, 97, 930],
-    verdict: ['Verdict', 'Council decision', 1481, 222, 255, 1014],
-    gate: ['Human gate', 'Version-bound approval', 1671, 208, 96, 1118],
-    registry: ['Capability registry', 'Health & included pools', 543, 103, 92, 392],
-    reconciler: ['Reconciler', 'Ownership & receipts', 325, 56, 93, 172],
-    observer: ['Control room', 'Read-only observer', 96, 338, 253, 283],
+    operator: ['Operator', 'Telegram, HITL approvals', 96, 222, 94, 78],
+    coordinator: ['Control plane', 'Cloudflare Workers, 24/7', 325, 156, 258, 163],
+    ledger: ['Durable state', 'GitHub, CAS-fenced writes', 305, 304, 92, 291],
+    router: ['Role-aware router', 'Deterministic, auditable', 557, 222, 253, 413],
+    local: ['Codex A', 'OpenAI, local', 802, 106, 93, 519],
+    localB: ['Codex B', 'OpenAI, local fallback', 802, 178, 255, 578],
+    claude: ['Claude Code', 'Anthropic, local', 802, 245, 93, 645],
+    antigravity: ['Antigravity', 'Multi-model, local', 802, 312, 255, 705],
+    cloud: ['Jules', 'Google, historical replay', 802, 411, 93, 786],
+    candidate: ['Candidate PR', 'Exact base, SHA, paths', 1044, 185, 254, 870],
+    validator: ['Validator', 'Exact-SHA test gate', 1064, 320, 92, 955],
+    council: ['Review council on Workers AI', 'Independent models', 1280, 235, 250, 1073],
+    verdict: ['Verdict', 'Structured JSON', 1481, 235, 96, 1191],
+    gate: ['Human merge gate', 'Exact-SHA approval', 1671, 215, 254, 1280],
+    merged: ['Merged', 'By a human', 1850, 215, 96, 1370],
+    registry: ['Capability registry', 'Capability, health, quota', 543, 103, 92, 400],
+    reconciler: ['Reconciler', 'Every 60 s in the film', 325, 56, 93, 172],
+    observer: ['Control room', 'Read-only telemetry', 96, 338, 253, 283],
+    pinned: ['Pinned policy', 'Rules fixed per run', 305, 422, 223, 333],
+    feedback: ['Feedback triage', 'Auto-reply or escalate', 557, 414, 252, 498],
   };
   const icons = {
     operator: 'M5 19c0-6 14-6 14 0 M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
@@ -37,6 +43,16 @@
     observer: 'M3 5h18v13H3z M7 13l3-3 3 3 4-5 M8 21h8',
   };
   const links = [
+    ['ledger', 'pinned'],
+    ['cloud', 'feedback'],
+    ['feedback', 'operator'],
+    ['router', 'localB'],
+    ['localB', 'candidate'],
+    ['router', 'claude'],
+    ['claude', 'candidate'],
+    ['router', 'antigravity'],
+    ['antigravity', 'candidate'],
+    ['gate', 'merged'],
     ['operator', 'coordinator'],
     ['coordinator', 'ledger'],
     ['ledger', 'observer'],
@@ -97,8 +113,15 @@
         (s.pc ? 'online' : 'offline') +
         '. ' +
         (s.owner === 'local' ? 'Owns attempt ' + s.attempt + '.' : 'No current lease.'),
+      localB: 'Second local OpenAI worker. If Codex A is busy before a claim, Codex B can take it.',
+      claude: 'Anthropic local worker. Gated by the walkthrough policy for this task.',
+      antigravity: 'Multi-model local worker. Gated by the walkthrough policy for this task.',
+      pinned: 'The mission keeps its review, spend and approval rules across retries.',
+      feedback: 'Routine questions follow the pinned policy. Changes in scope go to Telegram.',
+      merged:
+        'The historical walkthrough ends with a human merge. This simulator stops at authorisation.',
       cloud:
-        'Jules is unavailable for new tasks. It appears in the historical walkthrough. The cloud worker here is a fictional alias.',
+        'Jules is the Google cloud agent in the historical walkthrough. This replay simulates that role locally.',
       candidate: c
         ? 'Version ' + c.version + ' · ' + c.sha.slice(0, 12) + ' · ' + c.scope + '.'
         : 'An immutable draft carries the diff and base revision.',
@@ -106,9 +129,12 @@
         ? 'Read-only check evidence for ' + s.checks.sha.slice(0, 12) + '.'
         : 'Reads the candidate and runs the authored fixture checks.',
       council:
-        (s.policy?.sensitive ? 'Three' : 'Two') +
-        ' known independent families required. Slate is the executor family. Remaining reviewers: ' +
-        ['Iris', 'Birch', 'Reed', 'Fern'].slice(s.offline).join(', ') +
+        'Workers AI · ' +
+        root.Simulation.reviewers(s).required +
+        ' independent model families required. ' +
+        root.Simulation.reviewers(s)
+          .members.map((w) => w.name + ' (' + w.family + ')')
+          .join(', ') +
         '.',
       verdict: s.reviews
         ? (s.reviews.pass ? 'Pass' : 'Blocking finding') + ' for ' + s.reviews.sha.slice(0, 12) + '.'
@@ -118,9 +144,9 @@
       facts.council += ' Excluded: ' + root.Simulation.reviewers(s).excluded.join('; ') + '.';
     return facts[key] + (evidence ? ' ' + evidence.detail : '');
   }
-  const compactNodes = new Set(['reconciler', 'registry', 'verdict']);
+  const compactNodes = new Set(['reconciler', 'registry', 'verdict', 'merged', 'pinned', 'feedback']);
   const colours = { normal: '#a8d9ff', human: '#ffcc71', danger: '#ff8494', late: '#9b9aaa' };
-  const flightMs = 2100;
+  const flightMs = 1900;
   let scene = null;
   const point = (x, y) => ({ x, y });
   const xy = (p) => p.x + ' ' + p.y;
@@ -129,10 +155,11 @@
     for (const [key, [, , x, y, mx, my]] of Object.entries(nodes)) {
       const round = compactNodes.has(key),
         council = key === 'council';
+      const cardRadius = small ? (key === 'gate' ? 80 : 71) : 84;
       result[key] = {
         x: small ? mx : x,
         y: small ? my : y,
-        rx: round ? 18 : council ? (small ? 81 : 108) : small ? 71 : 84,
+        rx: round ? 18 : council ? (small ? 81 : 108) : cardRadius,
         ry: round ? 18 : 24,
       };
     }
@@ -211,16 +238,19 @@
     if (id === 'gate-operator') return outer(n, m, small ? 'left' : 'top', small ? 9 : 15);
     if (id === 'verdict-router') return outer(n, m, small ? 'right' : 'top', small ? 345 : 55);
     if (id === 'reconciler-ledger' && !small) return outer(n, m, 'left', 207);
+    if (id === 'feedback-operator') return outer(n, m, small ? 'right' : 'bottom', small ? 342 : 484);
     const regular = links.some(([u, v]) => u === a && v === b);
     if (!regular && Math.abs(small ? n.y - m.y : n.x - m.x) > (small ? 165 : 275)) {
       return outer(
         n,
         m,
         small ? (n.x + m.x < 348 ? 'left' : 'right') : 'bottom',
-        small ? (n.x + m.x < 348 ? 12 : 343) : 396,
+        small ? (n.x + m.x < 348 ? 12 : 343) : 503,
       );
     }
     if (small) {
+      if (b === 'council') return curve(n, m, 'bottom', 'left');
+      if (a === 'council' && b === 'verdict') return curve(n, m, 'right', 'top');
       if (Math.abs(m.y - n.y) > 68)
         return curve(n, m, m.y > n.y ? 'bottom' : 'top', m.y > n.y ? 'top' : 'bottom');
       return curve(n, m, m.x > n.x ? 'right' : 'left', m.x > n.x ? 'left' : 'right');
@@ -283,7 +313,22 @@
       transform: 'translate(' + x + ' ' + y + ') scale(' + size / 24 + ')',
       class: 'diagram-icon',
     });
-    group.append(svg('path', { d: icons[name] }));
+    group.append(
+      svg('path', {
+        d:
+          icons[name] ||
+          icons[
+            {
+              localB: 'local',
+              claude: 'local',
+              antigravity: 'local',
+              pinned: 'registry',
+              feedback: 'coordinator',
+              merged: 'candidate',
+            }[name]
+          ],
+      }),
+    );
     return group;
   }
   function badge(parent, x, y, label, tone) {
@@ -302,7 +347,10 @@
       [label, sub] = nodes[key],
       c = root.Simulation.current(s);
     const off =
-      (key === 'local' && (!s.pc || !s.pools.local)) ||
+      (['local', 'localB'].includes(key) &&
+        (!s.pc || !s.pools.local || (key === 'local' && s.codexABusy))) ||
+      key === 'claude' ||
+      key === 'antigravity' ||
       (key === 'cloud' && (!s.transport || !s.projectAccess || !s.pools.cloud));
     const group = svg('g', {
       role: 'button',
@@ -319,10 +367,13 @@
         svg('circle', { cx: n.x, cy: n.y, r: n.rx, class: 'shell' }),
         icon(key, n.x - 9, n.y - 9, 18),
         svg('text', { x: n.x, y: n.y + 33, 'text-anchor': 'middle', class: 'node-name' }, label),
+        svg('text', { x: n.x, y: n.y + 45, 'text-anchor': 'middle', class: 'node-sub' }, sub),
       );
     } else if (key === 'council') {
-      const families = root.Simulation.reviewers(s).families;
-      const members = families.length ? families : ['Unavailable'];
+      const { members: selected, required } = root.Simulation.reviewers(s);
+      const members = root.Simulation.councilModels.filter(
+        (w) => required === 3 || selected.some((r) => r.family === w.family),
+      );
       const gap = small ? 38 : 45,
         cardWidth = n.rx * 2 - (small ? 26 : 46);
       group.append(
@@ -337,7 +388,10 @@
           label,
         ),
       );
-      members.forEach((family, i) => {
+      members.forEach((model, i) => {
+        const seat = selected.find((r) => r.family === model.family);
+        const vote =
+          s.reviews?.sha === c?.sha ? s.reviews?.votes.find((v) => v.family === model.family) : null;
         const y = n.y + (i - (members.length - 1) / 2) * gap,
           left = n.x - cardWidth / 2,
           right = n.x + cardWidth / 2;
@@ -379,8 +433,17 @@
               n.y,
           }),
           svg('rect', { x: left, y: y - 16, width: cardWidth, height: 32, rx: 7, class: 'shell' }),
-          icon('council', left + 9, y - 8, 16),
-          svg('text', { x: left + 32, y: y + 4, class: 'node-name' }, family + ' review'),
+          icon('council', left + 8, y - 8, 15),
+          svg('text', { x: left + 28, y: y - 1, class: 'node-name' }, model.name),
+          svg(
+            'text',
+            { x: left + 28, y: y + 11, class: 'node-sub' },
+            vote
+              ? vote.verdict + ' · ' + model.family
+              : seat
+                ? model.family + (seat.reserve ? ' · reserve' : '')
+                : 'Offline',
+          ),
         );
       });
     } else {
@@ -395,10 +458,17 @@
         svg(
           'text',
           { x: left + 39, y: n.y + 12, class: 'node-sub' },
-          small && key === 'coordinator' ? 'Coordinator' : sub,
+          small
+            ? {
+                coordinator: 'Cloudflare Workers',
+                operator: 'Telegram approvals',
+                ledger: 'GitHub, CAS writes',
+                cloud: 'Google · replay',
+              }[key] || sub
+            : sub,
         ),
       );
-      if (key === s.owner)
+      if (key === root.Simulation.station(s, s.owner))
         badge(
           group,
           left + 9,
@@ -406,12 +476,19 @@
           s.lost ? 'Signal lost' : 'Lease · ' + s.attempt,
           s.lost ? 'danger' : 'healthy',
         );
-      else if (off) badge(group, left + 9, top - 2, 'Fenced', 'muted');
+      else if (off)
+        badge(
+          group,
+          left + 9,
+          top - 2,
+          ['claude', 'antigravity'].includes(key) ? 'Gated' : 'Fenced',
+          'muted',
+        );
       else if (key === 'candidate' && c)
         badge(group, left + 9, top - 2, 'v' + c.version + ' · exact SHA', 'normal');
       else if (key === 'gate' && s.question && ['confirm', 'gate'].includes(s.phase))
         badge(group, left + 9, top - 2, 'Awaiting approval', 'human');
-      if (key === s.owner) {
+      if (key === root.Simulation.station(s, s.owner)) {
         const x = n.x + n.rx - 54,
           y = top - 8;
         group.append(
@@ -421,7 +498,7 @@
           }),
         );
       }
-      if (key === s.owner && !s.lost) {
+      if (key === root.Simulation.station(s, s.owner) && !s.lost) {
         group.append(svg('circle', { cx: left + 20, cy: n.y, r: 13, class: 'owner-pulse' }));
       }
     }
@@ -521,7 +598,7 @@
     return layer;
   }
   function frame(g, key, event, path, small, overview, ratio) {
-    const total = small ? [0, 0, 354, 1180] : [0, -4, 1770, 421];
+    const total = small ? [0, 0, 354, 1440] : [0, -4, 1910, 530];
     if (overview) return total;
     const keys = event
       ? [event.from, event.to]
@@ -531,9 +608,9 @@
     if (!keys.includes(key) && key) keys.push(key);
     const bounds = keys.map((k) => [
       g[k].x - g[k].rx - 16,
-      g[k].y - 40,
+      g[k].y - (k === 'council' ? 86 : 40),
       g[k].x + g[k].rx + 16,
-      g[k].y + 43,
+      g[k].y + (k === 'council' ? 73 : 43),
     ]);
     if (path) {
       const b = path.getBBox();
@@ -553,7 +630,7 @@
   }
   function locator(mini, g, small, box) {
     mini.replaceChildren();
-    mini.setAttribute('viewBox', small ? '0 0 354 1180' : '0 -4 1770 421');
+    mini.setAttribute('viewBox', small ? '0 0 354 1440' : '0 -4 1910 530');
     for (const [a, b] of links)
       mini.append(svg('path', { d: route(a, b, g, small), class: 'mini-wire' }));
     for (const n of Object.values(g))

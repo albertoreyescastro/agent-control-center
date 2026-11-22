@@ -102,6 +102,7 @@ async function run() {
       assert.equal(await loc('thread').locator('.you').count(), 1);
       await advance('Decision returned');
       await press(btn('Approve'));
+      await press(btn('Confirm approval'));
       assert.equal(await text('activeTitle'), 'Mission completed');
       await press(btn('Try another task'));
       await press(page.getByRole('button', { name: /^Try a task/ }));
@@ -118,7 +119,7 @@ async function run() {
       await press(btn('Reject'));
       assert.equal(await text('activeTitle'), 'Mission rejected');
       await preset('heartbeat');
-      await incident('Drop heartbeat');
+      assert.match(await text('chatPhase'), /Heartbeat lost/);
       assert.match(await text('scenarioStatus'), /retains its lease/);
       if ([1440, 390].includes(width)) await shot('lost-heartbeat');
       await press(loc('step'));
@@ -151,7 +152,7 @@ async function run() {
       await preset('outage');
       await incident('Take reviewer offline');
       await press(loc('step'));
-      assert.match(await text('scenarioStatus'), /Birch \+ Reed/);
+      assert.match(await text('scenarioStatus'), /Open-weight GPT \+ GLM \+ Meta Llama/);
       await preset('outage');
       for (let i = 0; i < 3; i++) await incident('Take reviewer offline');
       await advance('Mission blocked');
@@ -173,9 +174,11 @@ async function run() {
       await press(btn('Two-phase mission'));
       await advance('Decision returned');
       await press(btn('Approve'));
+      await press(btn('Confirm approval'));
       await advance('Phase B queued');
       await advance('Decision returned');
       await press(btn('Approve').last());
+      await press(btn('Confirm approval').last());
       assert.equal(await text('activeTitle'), 'Mission completed');
       await preset('verification');
       await loc('thread').evaluate((t) => (t.scrollTop = 0));
@@ -200,7 +203,7 @@ async function run() {
       assert.match(await text('inspector'), /historical walkthrough/);
       assert(await noOverflow());
       assert.equal(await page.locator('animateMotion').count(), 0);
-      assert.equal(await page.locator('.station').count(), 14);
+      assert.equal(await page.locator('.station').count(), 20);
       const additionalRequests = requests.length - initial;
       assert.equal(additionalRequests, 0, 'No network after load');
       assert.deepEqual(errors, []);
@@ -237,7 +240,10 @@ async function run() {
     });
     await flight.goto(origin);
     await flight.locator('#explore').click();
-    await flight.locator('[data-scenario=heartbeat]').click();
+    await flight.locator('[data-scenario=normal]').click();
+    await flight.waitForFunction(
+      () => document.getElementById('activeTitle').textContent === 'Attempt 1 claimed',
+    );
     assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'healthy');
     assert.equal(await flight.locator('[data-node=local] .inline-ecg.healthy').count(), 1);
     await flight.waitForTimeout(250);
@@ -271,10 +277,11 @@ async function run() {
     assert(Math.max(...movement.errors) < 2, JSON.stringify(movement));
     assert(movement.distance > 45 && movement.arrival > 0.4, JSON.stringify(movement));
     await flight.locator('#overviewMap').click();
-    assert.equal(await flight.locator('#map').evaluate((m) => m.viewBox.baseVal.width), 1770);
+    assert.equal(await flight.locator('#map').evaluate((m) => m.viewBox.baseVal.width), 1910);
     await flight.locator('#followMap').click();
     assert(await flight.locator('#map').evaluate((m) => m.viewBox.baseVal.width < 1200));
     await flight.locator('#contextIncident button').click();
+    assert.equal(await flight.locator('#play').innerText(), 'Pause');
     assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'lost');
     assert.equal(await flight.locator('[data-node=local] .inline-ecg.lost').count(), 1);
     assert.equal(await flight.locator('.owner-pulse').count(), 0);
@@ -288,10 +295,48 @@ async function run() {
       await flight.locator('#step').click();
     assert.equal(await flight.locator('#workerMonitor').getAttribute('data-health'), 'stale');
     await flight.locator('#step').click();
-    assert.match(await flight.locator('#heartState').innerText(), /Cloud executor/);
+    assert.match(await flight.locator('#heartState').innerText(), /Jules/);
     assert.match(await flight.locator('#heartDetail').innerText(), /Attempt 2/);
+    await flight.locator('#disrupt > summary').click();
+    await flight
+      .locator('#incidents')
+      .getByRole('button', { name: 'Drop heartbeat', exact: true })
+      .click();
+    for (let i = 0; i < 3; i++) await flight.locator('#step').click();
+    assert.equal(await flight.locator('#chatPhase').innerText(), 'Mission blocked');
+    assert.match(await flight.locator('#heartDetail').innerText(), /recovery blocked/);
+    assert.match(await flight.locator('#thread .bubble').last().innerText(), /No eligible route/);
     console.log('Browser PASS travelling packet, arrival, follow camera and heartbeat recovery');
     await flight.close();
+    const recovery = await browser.newPage({ reducedMotion: 'no-preference' });
+    await recovery.goto(origin);
+    await recovery.clock.install();
+    await recovery.locator('#explore').click();
+    await recovery.locator('[data-scenario=heartbeat]').click();
+    const status = () => recovery.locator('#activeTitle').innerText();
+    for (const name of [
+      'Heartbeat lost',
+      'Awaiting lease expiry',
+      'Expired attempt fenced',
+      'Attempt 2 claimed',
+    ]) {
+      assert.equal(await status(), name);
+      assert((await recovery.locator('#thread .bubble').last().innerText()).includes(name));
+      await recovery.clock.runFor(3450);
+    }
+    await recovery.clock.runFor(3450);
+    assert.equal(await status(), 'Scope needs a decision');
+    await recovery.getByRole('button', { name: 'Active rows only' }).click();
+    await recovery.clock.runFor(3450 * 3);
+    assert.equal(await status(), 'Council convened');
+    assert.match(await recovery.locator('#chatPhase').innerText(), /Review council/);
+    assert.equal(await recovery.locator('[data-node=council] .node-name').count(), 3);
+    assert.match(
+      await recovery.locator('#thread .bubble').last().innerText(),
+      /Llama 3.1 8B, GPT-OSS 20B, GLM 4.7 Flash/,
+    );
+    await recovery.close();
+    console.log('Browser PASS automatic heartbeat recovery and phase-accurate Telegram council');
     const bad = await browser.newPage();
     await bad.route('**/assets/demo-state.js', (r) =>
       r.fulfill({
