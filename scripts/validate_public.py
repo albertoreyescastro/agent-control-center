@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Scan every approved public file, including this detector's source."""
 import re
+import base64
 import hashlib
 import sys
 from html.parser import HTMLParser
@@ -24,7 +25,10 @@ SCREENSHOTS = {
     'docs/readme/preview-gallery.jpg': (1440, 860, 231037, '1646d1926c39a5226208d45a8a4ad45880ada872a870c08be681882fb7beddb5'),
     'docs/readme/preview-gallery-narrow.jpg': (800, 1190, 194989, '7a7008a9a529e137b4457d72848477fc4ed5bfe1c1ef3f6049eb0507ddbc5d19'),
 }
-APPROVED |= set(SCREENSHOTS) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
+PORTRAIT = {'assets/alberto-reyes.jpg': (400, 400, 25164, '67e69dfdb9bc5f1d4bc329e0af9338bd788706d6aa78b9e6e224df9001c22b12')}
+REVIEWED_IMAGES = {**SCREENSHOTS, **PORTRAIT}
+APPROVED |= set(REVIEWED_IMAGES) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
+APPROVED |= {'assets/fixtures.js', 'assets/desk.css', 'assets/map.js'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
@@ -36,6 +40,9 @@ DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/
 PRIVATE = ['-work' + '-event-test-' + '20260926', 'agent-control-center' + '-private',
            'automation/' + 'state/providers.json', 'automation/' + 'queue/',
            'gen-lang' + '-client-', 'C:' + '\\Users\\']
+
+
+TAB_ICON = "data:image/svg+xml;base64," + base64.b64encode((ROOT / "assets/favicon.svg").read_bytes()).decode("ascii")
 
 
 class Page(HTMLParser):
@@ -57,7 +64,8 @@ class Page(HTMLParser):
             if tag in {'iframe', 'object', 'base', 'form'}:
                 self.bad = True
             target = a.get('src', a.get('href', ''))
-            if target and not target.startswith('assets/'):
+            bundled_icon = tag == 'link' and a.get('rel') == 'icon' and target == TAB_ICON
+            if target and not target.startswith('assets/') and not bundled_icon:
                 self.bad = True
 
 
@@ -103,9 +111,9 @@ def check(root=ROOT):
         if rel not in APPROVED | OPTIONAL:
             errors.append('unapproved file')
             continue
-        if rel in SCREENSHOTS:
+        if rel in REVIEWED_IMAGES:
             data = p.read_bytes()
-            _, _, size, digest = SCREENSHOTS[rel]
+            _, _, size, digest = REVIEWED_IMAGES[rel]
             if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
                 errors.append('unreviewed screenshot bytes')
             continue
@@ -145,10 +153,10 @@ def check(root=ROOT):
         actual = {d.strip() for d in page.csp.split(';') if d.strip()}
         if not set(directives).issubset(actual) or any(x in page.csp for x in ['unsafe-inline','unsafe-eval','*']):
             raise ValueError('CSP directive')
-        for marker in ['SANITISED DEMO', 'DEMO TOPOLOGY', 'SIMULATED STREAM']:
+        for marker in ['Interactive simulation · runs in your browser', 'OPERATOR CHANNEL', 'Mission map']:
             if marker not in html:
                 raise ValueError('demo label')
-        js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js'])
+        js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js', 'assets/map.js', 'assets/fixtures.js'])
         if any(sink in js for sink in ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'eval(', 'fetch(', 'WebSocket']):
             raise ValueError('unsafe browser sink')
     except (ValueError, OSError, KeyError):

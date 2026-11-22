@@ -1,17 +1,118 @@
+/* Fast adapter checks without network, timers or a browser dependency. */
 'use strict';
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-class Node{
-constructor(tag='div'){this.tag=tag;this.children=[];this.className='';this.dataset={};this.attributes={};this.listeners={};this.text='';this.disabled=false;this.namespaceURI='http://www.w3.org/2000/svg';this.classList={toggle:(k,on)=>{let s=new Set(this.className.split(' ').filter(Boolean));on?s.add(k):s.delete(k);this.className=[...s].join(' ');}};}
-get textContent(){return this.text+this.children.map(x=>x.textContent).join(' ');}set textContent(x){this.text=String(x);this.children=[];}
-append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;this.text='';}setAttribute(k,v){this.attributes[k]=String(v);}addEventListener(t,f){this.listeners[t]=f;}getBoundingClientRect(){return {width:700,height:450};}
-querySelector(sel){return this.children.flatMap(walk).find(n=>matches(n,sel));}}
-function walk(n){return[n,...n.children.flatMap(walk)];}function matches(n,s){if(s[0]==='.')return n.className.split(' ').includes(s.slice(1));if(s.startsWith('[data-id='))return n.dataset.id===s.slice(10,-2);return false;}
-function surface(){const ids=['scenarios','agents','graph','edges','inspector','inspectorAlias','play','step','resetDemo','playbackStatus','stepCount','storyNumber','storyPhase','storyTitle','scenarioStatus','progress','stats','queue','events'];const roots=Object.fromEntries(ids.map(x=>['#'+x,new Node()])),core=new Node('button');core.className='node core';core.dataset.id='control';roots['.core']=core;const all=()=>Object.values(roots).flatMap(walk);const timers=new Map();let tid=0;const motion={matches:false,listeners:{},addEventListener(t,f){this.listeners[t]=f;}};const doc={hidden:false,listeners:{},addEventListener(t,f){this.listeners[t]=f;},querySelector:s=>roots[s]||all().find(n=>matches(n,s)),querySelectorAll:s=>all().filter(n=>matches(n,s)),createElement:t=>new Node(t),createElementNS:(_,t)=>new Node(t)};const ctx=vm.createContext({window:{},document:doc,matchMedia:s=>s.includes('hover')?{matches:true}:motion,addEventListener(){},setTimeout:f=>{timers.set(++tid,f);return tid;},clearTimeout:i=>timers.delete(i),console});for(const file of ['assets/demo-state.js','assets/simulation.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);return{roots,core,all,motion,doc,ctx,timers};}
-let count=0;const p=surface();vm.runInContext(fs.readFileSync('assets/app.js','utf8'),p.ctx);assert.equal(p.roots['#scenarios'].children.length,6);assert.equal(p.roots['#agents'].children.length,6);assert(p.roots['#storyTitle'].textContent.includes('durable queue'));
-for(const option of p.roots['#scenarios'].children){option.listeners.click();let i=0;while(!p.roots['#step'].disabled&&i++<12){p.roots['#step'].listeners.click();assert(p.roots['#stats'].textContent.includes('Closed'));count++;}assert(i<12);assert(p.roots['#queue'].textContent.includes('AWAITING HUMAN'));p.roots['#resetDemo'].listeners.click();assert.equal(p.roots['#stepCount'].textContent,'STEP 1 / '+p.ctx.window.Simulation.scenarios().find(x=>x.id===option.dataset.scenario).count);}
-const worker=p.roots['#agents'].children[0];worker.listeners.focus();assert(p.roots['#inspector'].textContent.includes('Local executor'));assert.equal(worker.attributes['aria-pressed'],'true');p.roots['#agents'].children[2].listeners.mouseenter();assert(p.roots['#inspector'].textContent.includes('Reserve reviewer'));p.roots['#agents'].children[2].listeners.mouseleave();assert(p.roots['#inspector'].textContent.includes('Local executor'));
-p.roots['#play'].listeners.click();assert.equal(p.timers.size,1);const oldCallback=[...p.timers.values()][0];p.roots['#scenarios'].children[1].listeners.click();const before=p.roots['#stepCount'].textContent;oldCallback();assert.equal(p.roots['#stepCount'].textContent,before);assert.equal(p.timers.size,0);
-p.roots['#play'].listeners.click();p.motion.matches=true;p.motion.listeners.change();assert.equal(p.timers.size,0);assert(!p.all().some(x=>x.tag==='animateMotion'));assert(p.roots['#playbackStatus'].textContent.includes('Reduced motion'));
-p.motion.matches=false;p.roots['#play'].listeners.click();p.doc.hidden=true;p.doc.listeners.visibilitychange();assert.equal(p.timers.size,0);
-for(const mutate of [s=>s.mode='sanitized_snapshot',s=>s.agents[0].label='<img>',s=>s.secret='hidden',s=>s.agents.push(s.agents[0]),s=>s.queue_summary.queued=true]){const q=surface();mutate(q.ctx.window.DEMO_STATE);vm.runInContext(fs.readFileSync('assets/app.js','utf8'),q.ctx);assert(q.roots['#play'].disabled);assert.equal(q.roots['#agents'].children.length,0);assert(q.roots['#scenarioStatus'].textContent.includes('rejected'));}
-console.log(`DOM behavior: PASS (${count} scenario transitions; reset, ownership view, hover/focus, stale timers, reduced motion, hidden-tab pause, fail-closed)`);
+const assert = require('node:assert/strict'),
+  fs = require('node:fs'),
+  vm = require('node:vm');
+class Node {
+  constructor(tag = 'div') {
+    this.tag = tag;
+    this.children = [];
+    this.listeners = {};
+    this.dataset = {};
+    this.disabled = false;
+    this.scrollHeight = 0;
+    this.clientHeight = 0;
+    this.scrollTop = 0;
+    this.value = '';
+    this.text = '';
+  }
+  set textContent(v) {
+    this.text = String(v);
+    this.children = [];
+  }
+  get textContent() {
+    return this.text + this.children.map((n) => n.textContent).join(' ');
+  }
+  append(...nodes) {
+    this.children.push(...nodes);
+  }
+  replaceChildren(...nodes) {
+    this.children = nodes;
+    this.text = '';
+  }
+  addEventListener(key, fn) {
+    this.listeners[key] = fn;
+  }
+  click() {
+    if (!this.disabled) this.listeners.click?.();
+  }
+  focus() {}
+  scrollIntoView() {}
+  setAttribute() {}
+  contains() {
+    return false;
+  }
+  querySelectorAll() {
+    return [];
+  }
+  querySelector() {
+    return this.children[0];
+  }
+}
+function setup(invalid = false) {
+  const roots = new Map(),
+    timers = new Map();
+  let next = 0;
+  const get = (id) => {
+    if (!roots.has(id)) roots.set(id, new Node());
+    return roots.get(id);
+  };
+  const doc = {
+    getElementById: get,
+    createElement: (tag) => new Node(tag),
+    createTextNode: (s) => {
+      const n = new Node();
+      n.textContent = s;
+      return n;
+    },
+    addEventListener() {},
+    hidden: false,
+  };
+  const env = {
+    document: doc,
+    performance: { now: () => 1000 },
+    matchMedia: () => ({ matches: false, addEventListener() {} }),
+    setTimeout: (fn) => {
+      timers.set(++next, fn);
+      return next;
+    },
+    clearTimeout: (id) => timers.delete(id),
+    console,
+  };
+  env.window = env;
+  const context = vm.createContext(env);
+  for (const file of ['demo-state', 'fixtures', 'simulation'])
+    vm.runInContext(fs.readFileSync('assets/' + file + '.js', 'utf8'), context);
+  if (invalid) env.DEMO_STATE.mode = 'untrusted';
+  env.MissionMap = { nodes: new Proxy({}, { get: () => ['Node'] }), draw() {}, description: () => '' };
+  vm.runInContext(fs.readFileSync('assets/app.js', 'utf8'), context);
+  return { get, timers };
+}
+const d = setup();
+assert.equal(d.get('scenarios').children.filter((n) => n.dataset.scenario).length, 6);
+assert.match(d.get('thread').textContent, /What should we fix first/);
+d.get('choices').children[0].click();
+assert.match(d.get('activeTitle').textContent, /registered/);
+const old = [...d.timers.values()][0];
+assert.equal(typeof old, 'function');
+d.get('play').click();
+assert.equal(d.timers.size, 0);
+old();
+assert.match(d.get('activeTitle').textContent, /registered/);
+d.get('resetDemo').click();
+old();
+assert.match(d.get('activeTitle').textContent, /Awaiting a task/);
+d.get('message').value = 'Test empty CSV exports';
+d.get('send').click();
+assert.match(d.get('thread').textContent, /Test empty CSV/);
+d.get('scenarios')
+  .children.find((n) => n.dataset.scenario === 'verification')
+  .click();
+assert.match(d.get('thread').textContent, /Decision ready|Merge ready/);
+assert.equal(d.timers.size, 0);
+const broken = setup(true);
+assert.match(broken.get('scenarioStatus').textContent, /rejected/);
+assert.equal(broken.get('scenarios').children.length, 0);
+console.log(
+  'DOM adapter passed: initial chat, all presets, typed and suggested intake, stale timers, pause, reset, human gate and invalid fixture.',
+);

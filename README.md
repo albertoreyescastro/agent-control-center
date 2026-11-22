@@ -38,7 +38,11 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 ## See it in action
 
-**The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the public simulation. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
+**Follow a handoff.** Choose **Try a task** to follow the light from the sending port to the receiving port. **Overview** shows the complete route. In **Explore six scenarios → Heartbeat lost**, watch the signal stop and the original lease expire before Jules claims the simulated fallback. You can also inject **Drop heartbeat** into a running task.
+
+**Watch the council vote.** Choose **Bounded recovery** to see the signal split between three reviewers and their votes rejoin at the verdict. A blocking finding sends the candidate back for correction. After all three reviewers accept the revised candidate, Telegram shows the changes, checks and exact revision for human approval.
+
+**The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
 
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>
@@ -49,7 +53,7 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 [Interactive scenario lab ↗](https://albertoreyescastro.github.io/agent-control-center/) · [Adaptive orchestration graph ↗](https://albertoreyescastro.github.io/agent-control-center/) · [Fail-closed publication boundary ↗](https://albertoreyescastro.github.io/agent-control-center/)
 
-The screenshots supplement the architecture diagrams below. Activity is authored and simulated; the publication boundary is conceptual, with no harness connected to the browser.
+The historical screenshots supplement the architecture diagrams below. Activity is authored and simulated; the publication boundary is conceptual, with no harness connected to the browser.
 
 ## Why I built it
 
@@ -70,24 +74,17 @@ Designed and built by **Alberto Reyes Castro** as an AI engineering portfolio pr
 </picture>
 </a>
 
-**Task → eligibility → route → fenced execution → separate review → deterministic checks → human merge gate.** Failure can change the worker or attempt; it must preserve capability, ownership, verification and spend policy.
+**Task → eligibility → route → fenced execution → deterministic checks → independent review → human merge gate.** Failure can change the worker or attempt; it must preserve capability, ownership, verification and spend policy.
 
 The browser illustrates this flow with finite fixtures. It does not implement a queue service, schedule real workers or perform provider-backed review.
 
 ## Scenarios
 
-**Six local simulations. One closed human gate.** [Open the scenario lab ↗](https://albertoreyescastro.github.io/agent-control-center/#lab), select a story, then play, pause or step through its decisions. Inspect any worker by hover, tap or keyboard focus; reset returns to the selected story's start.
+**Try a task** opens a fictional CSV repair in the operator channel. Type a request or use a suggestion. The chat asks whether archived rows belong in scope. A separate validator checks the candidate, then the council can find a literal-quote bug and return one correction. Open **Candidate & evidence** to compare the versions. Approve or reject the exact action in Telegram.
 
-| Scenario | What the decision demonstrates |
-| :-- | :-- |
-| **01 · Normal routing** | Match an eligible executor; keep execution, review and verification separate. |
-| **02 · Reviewer outage** | Replace an unavailable reviewer while preserving the independent review role. |
-| **03 · Quota fence** | Select an eligible alternate pool; never imply paid recovery. |
-| **04 · Heartbeat lost** | Stale or unknown health removes eligibility; select a fresh owner. |
-| **05 · Bounded recovery** | Preserve the illustrated two-attempt ceiling; reject late ownership from an older attempt. |
-| **06 · Independent verification / human merge gate** | Require separate review and deterministic checks, then stop at a closed human gate. |
+[Explore six scenarios ↗](https://albertoreyescastro.github.io/agent-control-center/#lab) opens the same desk. The six presets bring you directly to normal routing, reviewer outage, quota fence, heartbeat loss, bounded recovery and the human merge gate. Choose **Try a disruption** to change a run. **Step**, **Pause** and **Reset** control the logical clock. The additional repair-limit and two-phase examples exercise exhaustion and continuation. A manual merge authorisation ends with the merge still in human hands.
 
-Task packets follow the active execution/review path. Inspector, metrics and timeline share the same scenario state. Pausing stops motion; reduced-motion preferences are respected. Changing stories cancels prior timers.
+The desk replays the public film’s worker and model names with fictional tasks, revisions and events. The sensitive council requires Llama 3.1 8B, GPT-OSS 20B and GLM 4.7 Flash from three distinct families. The Jules lane is a historical simulation. Browser memory holds the current session. Reloading clears the conversation. With reduced motion enabled, use **Step**. The historical walkthrough above remains available.
 
 ## Engineering decisions
 
@@ -104,7 +101,7 @@ Task packets follow the active execution/review path. Inspector, metrics and tim
 <details>
 <summary><strong>Observability philosophy: show decisions, preserve uncertainty</strong></summary>
 
-The UI presents generic worker aliases, finite health states and a coherent decision timeline. It deliberately avoids displaying private task content. Missing or unobservable information stays unknown instead of becoming a green status by inference.
+The map uses the walkthrough’s public names. The bundled state contract accepts finite worker aliases and health states. It deliberately avoids displaying private task content. Missing or unobservable information stays unknown instead of becoming a green status by inference.
 
 The control plane separates availability, ownership, evidence and authority. A recovered route still needs review; a passing check still needs human approval. The topology is an explanation of those boundaries, not a live operational map.
 
@@ -140,7 +137,7 @@ The repository's [read-only validation workflow](.github/workflows/validate.yml)
 | Real Chrome QA | All six scenarios at **1440 / 1024 / 768 / 390 / 320 px**; keyboard, touch, hover and reduced motion passed. |
 | Layout / runtime | Zero horizontal overflow, clipped worker nodes, console/runtime errors or broken assets in the recorded run. |
 
-These are test results, not production reliability metrics. See the [recorded V2 CI run](https://github.com/albertoreyescastro/agent-control-center/actions/runs/37053572034), [current workflow runs](https://github.com/albertoreyescastro/agent-control-center/actions/workflows/validate.yml) and [validation evidence](VALIDATION.md). The V2 checkpoint documents its pre-merge test state; current main contains the merged V2 interface.
+These are test results, not production reliability metrics. See the [recorded V2 CI run](https://github.com/albertoreyescastro/agent-control-center/actions/runs/37053572034), [current workflow runs](https://github.com/albertoreyescastro/agent-control-center/actions/workflows/validate.yml) and [validation evidence](VALIDATION.md). The V2 checkpoint documents its pre-merge test state; the table records the earlier scenario lab.
 
 <details>
 <summary><strong>Run the deterministic checks</strong></summary>
@@ -174,12 +171,13 @@ Open the loopback address on port 8000. JavaScript enables the local simulation;
 | Location | Responsibility |
 | :-- | :-- |
 | [index.html](index.html) · [styles.css](assets/styles.css) | Semantic static UI, responsive layout and motion styling. |
-| [app.js](assets/app.js) · [simulation.js](assets/simulation.js) | Inspection/playback and finite scenario state transitions. |
-| [demo-state.js](assets/demo-state.js) · [public-state.schema.json](public-state.schema.json) | Bundled sanitised fixture and closed public contract. |
+| [Desk](assets/app.js) · [Engine](assets/simulation.js) | Chat, playback, event journal and mission transitions. |
+| [Map](assets/map.js) · [CSV project](assets/fixtures.js) | Interactive routes and executable example checks. |
+| [Fixture](assets/demo-state.js) · [Schema](public-state.schema.json) | Bundled sanitised fixture and closed public contract. |
 | [scripts/](scripts) | Contract validation and public inventory/leakage checks. |
 | [tests/](tests) | Python regressions, Node simulation/DOM checks and Chrome QA. |
 | [docs/readme/](docs/readme) | First-party static README visuals; no scripts or remote assets. |
-| [SECURITY.md](SECURITY.md) · [VALIDATION.md](VALIDATION.md) | Publication boundary and recorded technical evidence. |
+| [Security](SECURITY.md) · [Validation](VALIDATION.md) | Publication boundary and recorded technical evidence. |
 
 **Stack:** HTML, CSS, vanilla JavaScript and SVG for the product; Python and Node for deterministic validation; GitHub Actions and a locked Playwright driver for browser QA. No heavyweight frontend framework.
 
