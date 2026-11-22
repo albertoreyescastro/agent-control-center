@@ -25,6 +25,7 @@ SCREENSHOTS = {
     'docs/readme/preview-gallery-narrow.jpg': (800, 1190, 194989, '7a7008a9a529e137b4457d72848477fc4ed5bfe1c1ef3f6049eb0507ddbc5d19'),
 }
 APPROVED |= set(SCREENSHOTS) | {'docs/readme/live-demo.svg', 'docs/readme/live-demo-narrow.svg', 'docs/readme/preview-review.md'}
+APPROVED |= {'assets/fixtures.js', 'assets/desk.css', 'assets/map.js'}
 OPTIONAL = {'public-state.json'}
 DENY = [r'(?i)(?:^|[\s\"\x27=(:])/(?:workspace|home|root|tmp|var|mnt|opt|Users)/[A-Za-z0-9._/-]+', r'gh[pousr]_[A-Za-z0-9]{20,}', r'github_pat_[A-Za-z0-9_]{20,}',
         r'AIza[A-Za-z0-9_-]{20,}', r'sk-[A-Za-z0-9_-]{20,}',
@@ -145,10 +146,10 @@ def check(root=ROOT):
         actual = {d.strip() for d in page.csp.split(';') if d.strip()}
         if not set(directives).issubset(actual) or any(x in page.csp for x in ['unsafe-inline','unsafe-eval','*']):
             raise ValueError('CSP directive')
-        for marker in ['SANITISED DEMO', 'DEMO TOPOLOGY', 'SIMULATED STREAM']:
+        for marker in ['Interactive simulation · runs in your browser', 'OPERATOR CHANNEL', 'Mission map']:
             if marker not in html:
                 raise ValueError('demo label')
-        js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js'])
+        js = '\n'.join((root / path).read_text() for path in ['assets/app.js', 'assets/simulation.js', 'assets/demo-state.js', 'assets/map.js', 'assets/fixtures.js'])
         if any(sink in js for sink in ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'eval(', 'fetch(', 'WebSocket']):
             raise ValueError('unsafe browser sink')
     except (ValueError, OSError, KeyError):

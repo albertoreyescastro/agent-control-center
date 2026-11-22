@@ -1,0 +1,660 @@
+:root {
+  --sheet: #101b21;
+  --stroke: #2d4048;
+  --soft: #abbdc2;
+  --aqua: #8be8ce;
+  --sky: #9fcbdc;
+  --gold: #ffd18a;
+  --danger: #ffabab;
+}
+body {
+  background: radial-gradient(ellipse at 76% 13%, #17404448, transparent 40%), #091116;
+}
+html {
+  scroll-padding-top: 74px;
+}
+.topbar {
+  position: relative;
+  height: 58px;
+  background: #0b151a;
+}
+main {
+  max-width: 1500px;
+  padding: 0 clamp(16px, 3.6vw, 64px);
+}
+.mission-desk {
+  padding: 32px 0 28px;
+  scroll-margin-top: 0;
+}
+.desk-intro,
+.pane-head,
+.transport-row,
+.desk-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.desk-intro {
+  margin-bottom: 22px;
+  align-items: flex-end;
+}
+.desk-intro h1 {
+  font-size: clamp(34px, 4.2vw, 68px);
+  letter-spacing: -0.065em;
+  line-height: 1.03;
+  margin: 7px 0 9px;
+  font-weight: 650;
+}
+.desk-intro h1 span {
+  color: var(--aqua);
+}
+.desk-intro p:not(.kicker) {
+  margin: 0;
+  color: #c0ced0;
+  font-size: 16px;
+}
+.kicker,
+.minor,
+.channel-tag,
+.map-status,
+.hint,
+#budget,
+#clock,
+.sim-note,
+.node-inspector label {
+  font-family: var(--mono);
+}
+.kicker,
+.minor {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  margin: 0;
+  color: var(--soft);
+}
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.signal,
+.sim-note i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--aqua);
+}
+.scenario-link {
+  font-size: 14px;
+  padding: 10px 0;
+  color: var(--aqua);
+}
+.scenario-link span {
+  margin-left: 6px;
+}
+.desk-grid {
+  display: grid;
+  grid-template-columns: minmax(310px, 0.8fr) minmax(0, 1.75fr);
+  gap: 14px;
+}
+.card {
+  background: var(--sheet);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  min-width: 0;
+}
+.channel,
+.map-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.pane-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--stroke);
+  min-height: 67px;
+}
+.channel .pane-head {
+  justify-content: flex-start;
+}
+.pane-head h2 {
+  font-size: 21px;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  margin: 2px 0 0;
+}
+.channel-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #1a4047;
+  color: #a8e3ef;
+  font-size: 18px;
+}
+.channel-tag,
+.map-status {
+  margin-left: auto;
+  padding: 5px 9px;
+  border: 1px solid #395159;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #bed5d9;
+}
+.thread {
+  padding: 18px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  height: 230px;
+  min-height: 135px;
+  max-height: 350px;
+  scrollbar-width: thin;
+}
+.bubble {
+  width: fit-content;
+  max-width: 96%;
+  margin: 0 0 12px;
+  padding: 11px 14px;
+  background: #223139;
+  border: 1px solid #33444a;
+  border-radius: 3px 14px 14px 14px;
+  font-size: 14px;
+  line-height: 1.52;
+  overflow-wrap: anywhere;
+}
+.bubble small {
+  display: block;
+  color: #a6c4cb;
+  font: 10px var(--mono);
+  margin-bottom: 5px;
+}
+.bubble.you {
+  background: #1d3934;
+  border-color: #31554b;
+  margin-left: auto;
+  border-radius: 14px 3px 14px 14px;
+}
+.bubble.you small {
+  color: var(--aqua);
+}
+.bubble.decision {
+  border-color: #806744;
+  background: #342e23;
+}
+.decision small {
+  color: var(--gold);
+}
+.decision dl {
+  margin: 6px 0 8px;
+  font-size: 12px;
+}
+.decision dt {
+  color: #d1bd9d;
+}
+.decision dd {
+  margin: 0 0 4px;
+}
+.decision button,
+.chat-controls button,
+.transport-row button,
+.utility button,
+.presets button,
+#contextIncident button,
+.new-msg {
+  border: 1px solid #486068;
+  border-radius: 7px;
+  background: #182930;
+  color: #e3edef;
+  padding: 8px 11px;
+  min-height: 40px;
+  font-size: 13px;
+  text-align: left;
+}
+.mission-desk button:hover:enabled {
+  border-color: #8ad8c9;
+  background: #254139;
+}
+.new-msg {
+  position: absolute;
+  right: 14px;
+  top: 84px;
+}
+.chat-controls {
+  padding: 12px 16px 10px;
+  border-top: 1px solid var(--stroke);
+  margin-top: auto;
+  background: #131f25;
+}
+#choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+#choices:empty {
+  margin: 0;
+}
+.chat-controls .primary,
+.decision .primary {
+  background: var(--aqua);
+  color: #102921;
+  border-color: var(--aqua);
+  font-weight: 650;
+}
+#choices button small {
+  display: block;
+  font-size: 12px;
+  color: inherit;
+  font-weight: 430;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+.compose {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid #41545d;
+  background: #0c161b;
+  border-radius: 9px;
+  gap: 4px;
+}
+.compose input {
+  min-width: 0;
+  flex: 1;
+  background: transparent;
+  color: #eaf2f2;
+  font: inherit;
+  font-size: 14px;
+  border: none;
+  padding: 7px;
+}
+.compose button {
+  width: 36px;
+  min-height: 34px;
+  text-align: center;
+  padding: 0;
+  font-size: 20px;
+}
+.hint {
+  font-size: 10px;
+  margin: 7px 0 0;
+  color: var(--soft);
+}
+:focus-visible {
+  outline: 2px solid #a7f6dc;
+  outline-offset: 2px;
+}
+.active-card {
+  padding: 12px 18px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  background: #14272b;
+  border-bottom: 1px solid var(--stroke);
+}
+.active-card i {
+  display: block;
+  border: 2px solid var(--aqua);
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  margin-top: 5px;
+  flex: none;
+}
+.active-card b {
+  font-size: 14px;
+}
+.active-card p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #b9cdd0;
+  margin: 3px 0 0;
+}
+.map-field {
+  background-color: #0b161c;
+  background-image: radial-gradient(#31414980 0.8px, transparent 0.9px);
+  background-size: 14px 14px;
+}
+#map {
+  display: block;
+  width: 100%;
+  max-height: 295px;
+}
+.wire {
+  fill: none;
+  stroke: #40545e;
+  stroke-width: 1.3;
+}
+.wire.human {
+  stroke: #92794d;
+}
+.wire.danger {
+  stroke: #8e5859;
+  stroke-dasharray: 5 4;
+}
+.wire.active {
+  stroke: var(--aqua);
+  stroke-width: 2.6;
+}
+.wire.active.human {
+  stroke: var(--gold);
+}
+.wire.active.danger {
+  stroke: var(--danger);
+}
+.packet {
+  fill: #b1ffe9;
+}
+.packet.human {
+  fill: var(--gold);
+}
+.packet.danger {
+  fill: var(--danger);
+}
+.station {
+  cursor: pointer;
+}
+.station rect {
+  fill: #16262e;
+  stroke: #48606a;
+  stroke-width: 1.15;
+}
+.station text {
+  fill: #dce7e8;
+  font: 600 12.5px system-ui;
+}
+.station .symbol {
+  font: 12px var(--mono);
+  fill: #a2bfc4;
+}
+.station.chosen rect,
+.station:focus rect {
+  stroke: var(--aqua);
+  stroke-width: 2.4;
+}
+.station.current rect {
+  fill: #244139;
+}
+.station.off rect {
+  stroke-dasharray: 4 3;
+}
+.station.off text {
+  fill: #9caeb4;
+}
+.pulse {
+  fill: #8ceaca;
+  animation: beat 1.3s ease-in-out infinite;
+}
+@keyframes beat {
+  50% {
+    opacity: 0.22;
+  }
+}
+.node-inspector {
+  padding: 10px 18px;
+  border-top: 1px solid var(--stroke);
+  font-size: 13px;
+  line-height: 1.45;
+  min-height: 54px;
+  color: var(--soft);
+}
+.node-inspector b {
+  color: #e2ebea;
+}
+.transport-row {
+  margin-top: auto;
+  padding: 9px 14px;
+  justify-content: flex-start;
+  border-top: 1px solid var(--stroke);
+  gap: 6px;
+}
+#clock {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--soft);
+}
+#map-details > summary {
+  display: none;
+}
+.desk-tools {
+  padding: 11px 3px;
+  color: var(--soft);
+  font-size: 10px;
+  flex-wrap: wrap;
+}
+.sim-note i {
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+}
+.utilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+.utility,
+.presets {
+  font-size: 14px;
+}
+.mission-desk summary {
+  cursor: pointer;
+  padding: 12px 15px;
+  font-weight: 600;
+  color: #e2eeee;
+}
+.utility > div,
+.utility ol {
+  padding: 0 15px 12px;
+}
+.utility button,
+.presets button {
+  margin: 3px;
+}
+.utility p {
+  color: var(--soft);
+  font-size: 13px;
+}
+.utility pre {
+  padding: 10px;
+  border-radius: 6px;
+  background: #0a1318;
+  color: #c4e2d6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.utility li {
+  margin: 0 0 8px 16px;
+}
+.utility li small {
+  display: block;
+  color: var(--soft);
+}
+#contextIncident {
+  margin-top: 8px;
+}
+#contextIncident:empty {
+  display: none;
+}
+#contextIncident button {
+  color: var(--sky);
+  background: transparent;
+}
+.presets {
+  margin-top: 10px;
+}
+.presets > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0 12px 12px;
+}
+.presets small {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--soft);
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  .mission-desk {
+    padding-top: 20px;
+  }
+  .desk-grid,
+  .utilities {
+    grid-template-columns: 1fr;
+  }
+  .desk-grid {
+    gap: 10px;
+  }
+  .desk-intro {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .desk-intro .scenario-link {
+    display: inline-block;
+    padding-top: 8px;
+  }
+  .desk-intro h1 {
+    margin-top: 6px;
+  }
+  .desk-intro p:not(.kicker) {
+    font-size: 14px;
+  }
+  .channel .pane-head,
+  .map-card .pane-head {
+    min-height: 46px;
+    padding: 9px 13px;
+  }
+  .pane-head h2 {
+    font-size: 18px;
+  }
+  .channel-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .thread {
+    flex: none;
+    height: 155px;
+    padding: 12px 13px;
+  }
+  .bubble {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .chat-controls {
+    padding: 8px 12px;
+  }
+  .active-card,
+  .node-inspector {
+    padding: 10px 13px;
+  }
+  #map-details > summary {
+    display: list-item;
+    font-size: 13px;
+  }
+  #map {
+    max-height: none;
+  }
+  .presets > div {
+    grid-template-columns: 1fr 1fr;
+  }
+  .utilities {
+    gap: 7px;
+  }
+  .channel:has(.decision:last-child) .thread {
+    height: 244px;
+  }
+  .topbar {
+    height: 48px;
+  }
+  .desk-tools {
+    gap: 6px;
+  }
+  .mission-desk button,
+  .mission-desk summary,
+  .compose button {
+    min-height: 44px;
+  }
+  .desk-intro .kicker {
+    font-size: 9px;
+  }
+  #clock {
+    max-width: 78px;
+  }
+  .sim-note {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+.map-card #contextIncident:not(:empty) {
+  padding: 4px 12px;
+  margin: 0;
+  border-top: 1px solid var(--stroke);
+}
+.map-card #contextIncident button {
+  padding: 5px 10px;
+  min-height: 32px;
+  font-size: 12px;
+}
+.station .symbol {
+  fill: var(--aqua);
+  font-size: 13px;
+}
+.station[data-node='gate'] rect,
+.station[data-node='operator'] rect {
+  stroke: #92794d;
+}
+.station[data-node='gate'] .symbol,
+.station[data-node='operator'] .symbol {
+  fill: var(--gold);
+}
+.map-card:has(.wire.active.danger) .active-card i {
+  border-color: var(--danger);
+}
+.map-card:has(.wire.active.human) .active-card i {
+  border-color: var(--gold);
+}
+@media (max-width: 760px) {
+  .map-card #contextIncident button {
+    min-height: 44px;
+  }
+}
+.rail-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 13;
+  cursor: pointer;
+}
+.rail-hit:hover,
+.rail-hit:focus-visible {
+  stroke: #87d1c74d;
+  outline: none;
+}
+.still-beat {
+  fill: #8ceaca;
+}
+
+#proof p {
+  overflow-wrap: anywhere;
+}

@@ -24,6 +24,6 @@ If you find sensitive information in this repository, do not open a public issue
 
 The browser has connect-src none, external-only scripts/styles and text-only DOM rendering. Keyboard/tap inspection and reduced-motion behavior are explicit. CI scans its own detector source, rejects unknown files and validates payloads with duplicate-key/type/timestamp checks. A deliberate source-code encoding can evade any pattern scanner; independent diff review remains required. Require the validation job through repository protection before using CI as a mandatory gate. No Pages workflow is installed.
 
-## V2 simulations
+## Browser simulation
 
-Scenario identifiers and narratives are finite authored fixtures, structurally separate from any exported snapshot. The browser validates the unchanged six-worker demo contract before mounting; a malformed payload disables all simulation controls. New simulation source is included in the unsafe-sink/leakage scan. No real quota amounts or model-family independence are inferred. Unknown health remains explicit. All scenes end at a closed human gate; no mutation endpoint exists.
+Scenario identifiers and narratives are finite authored fixtures, structurally separate from any exported snapshot. The browser validates the unchanged six-worker demo contract before mounting; a malformed payload disables all simulation controls. New simulation source is included in the unsafe-sink/leakage scan. No real quota amounts or model-family independence are inferred. Unknown health remains explicit. Decisions settle only inside the browser session. Chat input is displayed as text and discarded on reload. No mutation endpoint exists.
