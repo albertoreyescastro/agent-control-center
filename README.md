@@ -167,12 +167,13 @@ Open the loopback address on port 8000. JavaScript enables the local simulation;
 | Location | Responsibility |
 | :-- | :-- |
 | [index.html](index.html) · [styles.css](assets/styles.css) | Semantic static UI, responsive layout and motion styling. |
-| [app.js](assets/app.js) · [simulation.js](assets/simulation.js) | Inspection/playback and finite scenario state transitions. |
-| [demo-state.js](assets/demo-state.js) · [public-state.schema.json](public-state.schema.json) | Bundled sanitised fixture and closed public contract. |
+| [Desk](assets/app.js) · [Engine](assets/simulation.js) | Chat, playback, event journal and mission transitions. |
+| [Map](assets/map.js) · [CSV project](assets/fixtures.js) | Interactive routes and executable example checks. |
+| [Fixture](assets/demo-state.js) · [Schema](public-state.schema.json) | Bundled sanitised fixture and closed public contract. |
 | [scripts/](scripts) | Contract validation and public inventory/leakage checks. |
 | [tests/](tests) | Python regressions, Node simulation/DOM checks and Chrome QA. |
 | [docs/readme/](docs/readme) | First-party static README visuals; no scripts or remote assets. |
-| [SECURITY.md](SECURITY.md) · [VALIDATION.md](VALIDATION.md) | Publication boundary and recorded technical evidence. |
+| [Security](SECURITY.md) · [Validation](VALIDATION.md) | Publication boundary and recorded technical evidence. |
 
 **Stack:** HTML, CSS, vanilla JavaScript and SVG for the product; Python and Node for deterministic validation; GitHub Actions and a locked Playwright driver for browser QA. No heavyweight frontend framework.
 
