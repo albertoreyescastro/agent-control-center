@@ -8,7 +8,7 @@
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/live-demo-narrow.svg">
-  <img src="docs/readme/live-demo.svg" width="960" alt="Live demo — Explore the interactive Agent Control Center: six simulated scenarios in your browser. No live telemetry.">
+  <img src="docs/readme/live-demo.svg" width="960" alt="Interactive demo — Explore the interactive Agent Control Center: six simulated scenarios in your browser. No live telemetry.">
 </picture>
 </a>
 
@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/fbe1deba-8089-4af7-9ba7-3fdcc4c476be
 
 **Watch the council vote.** Choose **Bounded recovery** to see the signal split between three reviewers and their votes rejoin at the verdict. A blocking finding sends the candidate back for correction. After all three reviewers accept the revised candidate, Telegram shows the changes, checks and exact revision for human approval.
 
-**The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Live Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
+**The product, in three views.** Explore a failure, inspect the route and follow the evidence to the human gate. These cropped mobile captures show the earlier scenario lab. Select any preview to open the [Interactive Demo ↗](https://albertoreyescastro.github.io/agent-control-center/).
 
 <a href="https://albertoreyescastro.github.io/agent-control-center/">
 <picture>

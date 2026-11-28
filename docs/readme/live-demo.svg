@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="104" viewBox="0 0 960 104" role="img" aria-labelledby="title desc">
-  <title id="title">Live demo: explore the interactive Agent Control Center</title>
-  <desc id="desc">Open the live demo. Six simulated scenarios that run client-side in your browser. No live telemetry.</desc>
+  <title id="title">Interactive demo: explore the interactive Agent Control Center</title>
+  <desc id="desc">Open the interactive demo. Six simulated scenarios that run client-side in your browser. No live telemetry.</desc>
   <defs>
     <linearGradient id="bg" x2="1" y2="1">
       <stop stop-color="#081310"/>
@@ -9,7 +9,7 @@
   </defs>
   <rect x="0" y="0" width="960" height="104" rx="20" fill="url(#bg)"/>
   <rect x="0.5" y="0.5" width="959" height="103" rx="19.5" fill="none" stroke="#1c342d"/>
-  <text x="40" y="46" fill="#f2f3ec" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="24" font-weight="600">Explore the live demo</text>
+  <text x="40" y="46" fill="#f2f3ec" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="24" font-weight="600">Explore the interactive demo</text>
   <text x="40" y="74" fill="#9cb0a9" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="16">Six simulated scenarios in your browser. No live telemetry.</text>
   <rect x="760" y="28" width="168" height="48" rx="24" fill="#34d399"/>
   <text x="879.14" y="57.76" fill="#04130d" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" text-anchor="end">Open demo</text>
